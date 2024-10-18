@@ -1,4 +1,5 @@
 import paramiko
+import re
 
 def check_dns_settings(hostname, username, password):
     client = paramiko.SSHClient()
@@ -19,7 +20,8 @@ def check_dns_settings(hostname, username, password):
         }
         
         for key, value in dns_settings.items():
-            if f"{key}             : {value}" not in output:
+            pattern = fr"{key}\s*:\s*{value}"
+            if not re.search(pattern, output):
                 print(f"DNS setting mismatch: Expected {key} to be {value}")
                 return False
         

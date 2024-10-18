@@ -11,28 +11,37 @@ def execute_commands(client, commands):
     for command in commands:
         shell.send(command + '\n')
         time.sleep(2)  # Allow time for the command to execute
-        output = shell.recv(65535).decode('utf-8')
+        
+        # Read output and handle POST WARNING
+        output = ''
+        while True:
+            time.sleep(1)
+            output += shell.recv(65535).decode('utf-8')
+            if "Press 'a' to accept" in output:
+                shell.send('a\n')  # Accept the warning
+                time.sleep(2)  # Allow time for the acceptance
+            if output.endswith('# '):  # End of command prompt
+                break
+        
         outputs.append((command, output))
         print(f"Command: {command}\nOutput:\n{output}\n{'-' * 50}")  # Log command and output
     
     return outputs
+
 
 def check_dns_settings(hostname, username, password):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    execute_commands(client, ['a'])
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
 
     commands = ['get system dns']
     outputs = execute_commands(client, commands)
     dns_output = outputs[0][1]
 
-    print("DNS Output for verification:", dns_output)  # Debugging line
-
     dns_settings = {'primary': '8.8.8.8', 'secondary': '8.8.4.4'}
     for key, value in dns_settings.items():
-        print(f"Checking {key}: Expected {value}")  # Debugging line
         if not re.search(fr"{key}\s*:\s*{value}", dns_output):
             return "Non-Compliant"
     return "Compliant"
@@ -42,14 +51,12 @@ def check_intrazone_traffic(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    execute_commands(client, ['a'])
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
 
     commands = ['show full-configuration system zone | grep -i intrazone']
     outputs = execute_commands(client, commands)
     intrazone_output = outputs[0][1]
-
-    print("Intra-zone Traffic Output for verification:", intrazone_output)  # Debugging line
-
+    
     return "Compliant" if 'set intrazone deny' in intrazone_output else "Non-Compliant"
 
 def check_pre_login_banner(hostname, username, password):
@@ -57,13 +64,11 @@ def check_pre_login_banner(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    execute_commands(client, ['a'])
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
 
     commands = ['show system global | grep -i pre-login-banner']
     outputs = execute_commands(client, commands)
     pre_login_output = outputs[0][1]
-
-    print("Pre-Login Banner Output for verification:", pre_login_output)  # Debugging line
 
     return "Compliant" if 'enable' in pre_login_output.lower() else "Non-Compliant"
 
@@ -72,13 +77,11 @@ def check_post_login_banner(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    execute_commands(client, ['a'])
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
 
     commands = ['show system global | grep -i post-login-banner']
     outputs = execute_commands(client, commands)
     post_login_output = outputs[0][1]
-
-    print("Post-Login Banner Output for verification:", post_login_output)  # Debugging line
 
     return "Compliant" if 'enable' in post_login_output.lower() else "Non-Compliant"
 
@@ -87,13 +90,11 @@ def check_timezone(hostname, username, password, timezone):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    execute_commands(client, ['a'])
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
 
     commands = ['get system global | grep -i timezone']
     outputs = execute_commands(client, commands)
     timezone_output = outputs[0][1]
-
-    print("Timezone Output for verification:", timezone_output)  # Debugging line
 
     return "Compliant" if timezone.lower() in timezone_output.lower() else "Non-Compliant"
 
@@ -131,11 +132,10 @@ compliance_results.append({
     "compliance_status": check_post_login_banner(hostname, username, password)
 })
 
-timezone = "Asia/Kolkata"
+timezone = rf"Asia/Kolkata"
 compliance_results.append({
     "control_objective": "Ensure timezone is properly configured",
     "compliance_status": check_timezone(hostname, username, password, timezone)
 })
 
 write_to_csv(compliance_results)
-print("Compliance report has been written to 'compliance_report.csv'.")

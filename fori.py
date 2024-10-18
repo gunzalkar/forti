@@ -1,22 +1,31 @@
 import paramiko
 import re
 import csv
+import time
 
 def execute_commands(client, commands):
-    results = []
+    shell = client.invoke_shell()
+    time.sleep(1)  # Give some time for the shell to initialize
+    outputs = []
+    
     for command in commands:
-        stdin, stdout, stderr = client.exec_command(command)
-        results.append((command, stdout.read().decode('utf-8')))
-    return results
+        shell.send(command + '\n')
+        time.sleep(1)  # Wait for the command to be executed
+        output = shell.recv(65535).decode('utf-8')
+        outputs.append((command, output))
+    
+    return outputs
 
 def check_dns_settings(hostname, username, password):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    commands = ['a', 'get system dns']
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
+
+    commands = ['get system dns']
     outputs = execute_commands(client, commands)
-    dns_output = outputs[1][1]
+    dns_output = outputs[0][1]
 
     dns_settings = {'primary': '8.8.8.8', 'secondary': '8.8.4.4'}
     for key, value in dns_settings.items():
@@ -29,9 +38,11 @@ def check_intrazone_traffic(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    commands = ['a', 'show full-configuration system zone | grep -i intrazone']
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
+
+    commands = ['show full-configuration system zone | grep -i intrazone']
     outputs = execute_commands(client, commands)
-    intrazone_output = outputs[1][1]
+    intrazone_output = outputs[0][1]
     
     return "Compliant" if 'set intrazone deny' in intrazone_output else "Non-Compliant"
 
@@ -40,9 +51,11 @@ def check_pre_login_banner(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    commands = ['a', 'show system global | grep -i pre-login-banner']
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
+
+    commands = ['show system global | grep -i pre-login-banner']
     outputs = execute_commands(client, commands)
-    pre_login_output = outputs[1][1]
+    pre_login_output = outputs[0][1]
 
     return "Compliant" if 'enable' in pre_login_output.lower() else "Non-Compliant"
 
@@ -51,9 +64,11 @@ def check_post_login_banner(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    commands = ['a', 'show system global | grep -i post-login-banner']
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
+
+    commands = ['show system global | grep -i post-login-banner']
     outputs = execute_commands(client, commands)
-    post_login_output = outputs[1][1]
+    post_login_output = outputs[0][1]
 
     return "Compliant" if 'enable' in post_login_output.lower() else "Non-Compliant"
 
@@ -62,9 +77,11 @@ def check_timezone(hostname, username, password, timezone):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     client.connect(hostname, username=username, password=password)
-    commands = ['a', f'get system global | grep -i timezone']
+    execute_commands(client, ['a'])  # Send 'a' to accept the warning
+
+    commands = ['get system global | grep -i timezone']
     outputs = execute_commands(client, commands)
-    timezone_output = outputs[1][1]
+    timezone_output = outputs[0][1]
 
     return "Compliant" if timezone.lower() in timezone_output.lower() else "Non-Compliant"
 
@@ -75,6 +92,7 @@ def write_to_csv(compliance_results):
         for index, result in enumerate(compliance_results, start=1):
             writer.writerow([index, result['control_objective'], result['compliance_status']])
 
+# Example usage
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
@@ -101,7 +119,7 @@ compliance_results.append({
     "compliance_status": check_post_login_banner(hostname, username, password)
 })
 
-timezone = "Asia/Kolkata"
+timezone = rf"Asia/Kolkata"
 compliance_results.append({
     "control_objective": "Ensure timezone is properly configured",
     "compliance_status": check_timezone(hostname, username, password, timezone)

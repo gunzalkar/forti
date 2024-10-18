@@ -12,6 +12,7 @@ def check_dns_settings(hostname, username, password):
         
         stdin, stdout, stderr = client.exec_command('get system dns')
         output = stdout.read().decode('utf-8')
+        print(output)
         
         print("Checking DNS settings...")
         dns_settings = {

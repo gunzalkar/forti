@@ -1,6 +1,8 @@
 import paramiko
 import re
+import csv
 
+# Function to check DNS settings
 def check_dns_settings(hostname, username, password):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -12,7 +14,6 @@ def check_dns_settings(hostname, username, password):
         
         stdin, stdout, stderr = client.exec_command('get system dns')
         output = stdout.read().decode('utf-8')
-        print(output)
         
         print("Checking DNS settings...")
         dns_settings = {
@@ -24,29 +25,47 @@ def check_dns_settings(hostname, username, password):
             pattern = fr"{key}\s*:\s*{value}"
             if not re.search(pattern, output):
                 print(f"DNS setting mismatch: Expected {key} to be {value}")
-                return False
+                return "Non-Compliance"
         
         print("DNS settings are correct.")
-        return True
+        return "Compliance"
     except paramiko.AuthenticationException:
         print("Authentication failed. Please check your credentials.")
-        return False
+        return "Non-Compliance"
     except paramiko.SSHException as e:
         print(f"SSH connection error: {e}")
-        return False
+        return "Non-Compliance"
     except Exception as e:
         print(f"An error occurred: {e}")
-        return False
+        return "Non-Compliance"
     finally:
         client.close()
+
+# Function to write compliance status to a CSV file
+def write_to_csv(compliance_results):
+    with open('compliance_report.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Sr No.", "Control Objective", "Compliance Status"])
+        for index, result in enumerate(compliance_results, start=1):
+            writer.writerow([index, result['control_objective'], result['compliance_status']])
 
 # Example usage
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
 
-result = check_dns_settings(hostname, username, password)
-if result:
-    print("DNS settings are as expected.")
-else:
-    print("DNS settings verification failed.")
+# List to store compliance results
+compliance_results = []
+
+# Check DNS compliance
+dns_compliance = check_dns_settings(hostname, username, password)
+compliance_results.append({
+    "control_objective": "Ensure DNS server is configured",
+    "compliance_status": dns_compliance
+})
+
+# Add more compliance checks here in the future...
+
+# Write results to CSV
+write_to_csv(compliance_results)
+print("Compliance report has been written to 'compliance_report.csv'.")

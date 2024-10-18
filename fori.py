@@ -38,9 +38,9 @@ def check_dns_settings(hostname, username, password):
         client.close()
 
 # Example usage
-hostname = 'your_fortigate_ip'
-username = 'your_username'
-password = 'your_password'
+hostname = '192.168.1.1'
+username = 'admin'
+password = 'password'
 
 result = check_dns_settings(hostname, username, password)
 if result:

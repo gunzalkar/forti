@@ -41,6 +41,38 @@ def check_dns_settings(hostname, username, password):
     finally:
         client.close()
 
+# Function to check intra-zone traffic configuration
+def check_intrazone_traffic(hostname, username, password):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    
+    try:
+        print("Attempting to connect to the FortiGate device...")
+        client.connect(hostname, username=username, password=password)
+        print("SSH connection successful.")
+        
+        stdin, stdout, stderr = client.exec_command('show full-configuration system zone | grep -i intrazone')
+        output = stdout.read().decode('utf-8')
+        
+        print("Checking intra-zone traffic configuration...")
+        if 'set intrazone deny' in output:
+            print("Intra-zone traffic is correctly configured as denied.")
+            return "Compliant"
+        else:
+            print("Intra-zone traffic is not configured as denied.")
+            return "Non-Compliant"
+    except paramiko.AuthenticationException:
+        print("Authentication failed. Please check your credentials.")
+        return "Non-Compliant"
+    except paramiko.SSHException as e:
+        print(f"SSH connection error: {e}")
+        return "Non-Compliant"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return "Non-Compliant"
+    finally:
+        client.close()
+
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -64,7 +96,12 @@ compliance_results.append({
     "compliance_status": dns_compliance
 })
 
-# Add more compliance checks here in the future...
+# Check intra-zone traffic compliance
+intrazone_compliance = check_intrazone_traffic(hostname, username, password)
+compliance_results.append({
+    "control_objective": "Ensure intra-zone traffic is not always allowed",
+    "compliance_status": intrazone_compliance
+})
 
 # Write results to CSV
 write_to_csv(compliance_results)

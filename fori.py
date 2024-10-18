@@ -1,163 +1,60 @@
 import paramiko
-import re
 import csv
-import time
 
-# Function to execute multiple commands on the FortiGate device
-def execute_commands(shell, commands):
-    results = []
-    for command in commands:
-        shell.send(command + '\n')
-        time.sleep(1)  # Wait for the command to execute
-        output = shell.recv(65535).decode('utf-8')
-        results.append((command, output))
-    return results
-
-# Function to connect to FortiGate and send acceptance command
-def connect_to_fortigate(hostname, username, password):
+def check_compliance():
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
+    # Establish SSH connection
     try:
-        print("Attempting to connect to the FortiGate device...")
-        client.connect(hostname, username=username, password=password)
-        print("SSH connection successful.")
+        client.connect('192.168.1.1', username='admin', password='your_password')
         
-        # Create an interactive shell
-        shell = client.invoke_shell()
-        
-        # Wait for the pre-login banner
-        time.sleep(2)
-        
-        # Send 'a' to accept the warning
-        shell.send('a\n')
-        time.sleep(1)  # Wait for the acceptance to process
-        
-        return shell
-    except paramiko.AuthenticationException:
-        print("Authentication failed. Please check your credentials.")
-        return None
-    except paramiko.SSHException as e:
-        print(f"SSH connection error: {e}")
-        return None
+        commands = {
+            'get_system_dns': 'get system dns',
+            'show_intra_zone_traffic': 'show full-configuration system zone | grep -i intrazone',
+            'show_pre_login_banner': 'show system global | grep -i pre-login-banner',
+            'show_post_login_banner': 'show system global | grep -i post-login-banner',
+            'get_time_zone': 'get system global | grep -i timezone'
+        }
+
+        compliance_results = []
+
+        for key, command in commands.items():
+            stdin, stdout, stderr = client.exec_command(command)
+            output = stdout.read().decode().strip()
+            compliance_status = check_output_compliance(key, output)
+            compliance_results.append([key, compliance_status])
+
+        # Write results to CSV
+        with open('compliance_report.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Control Objective', 'Compliance Status'])
+            writer.writerows(compliance_results)
+
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None
 
-# Function to check DNS settings
-def check_dns_settings(shell):
-    print("Executing DNS command...")
-    dns_command = 'get system dns'
-    output = execute_commands(shell, [dns_command])[0][1]
+    finally:
+        client.close()  # Ensure the SSH connection is closed
+
+def check_output_compliance(command_key, output):
+    # Compliance checks for each command output
+    if command_key == 'get_system_dns':
+        return "Compliant" if "8.8.8.8" in output else "Non-Compliant"
     
-    print("Checking DNS settings...")
-    dns_settings = {
-        'primary': '8.8.8.8',
-        'secondary': '8.8.4.4'
-    }
+    elif command_key == 'show_intra_zone_traffic':
+        return "Compliant" if "allow" in output.lower() else "Non-Compliant"
     
-    for key, value in dns_settings.items():
-        pattern = fr"{key}\s*:\s*{value}"
-        if not re.search(pattern, output):
-            print(f"DNS setting mismatch: Expected {key} to be {value}")
-            return "Non-Compliant"
+    elif command_key == 'show_pre_login_banner':
+        return "Compliant" if "private computer system" in output.lower() else "Non-Compliant"
     
-    print("DNS settings are correct.")
-    return "Compliant"
-
-# Function to check intra-zone traffic configuration
-def check_intrazone_traffic(shell):
-    print("Executing intra-zone traffic command...")
-    intrazone_command = 'show full-configuration system zone | grep -i intrazone'
-    output = execute_commands(shell, [intrazone_command])[0][1]
+    elif command_key == 'show_post_login_banner':
+        return "Compliant" if "private computer system" in output.lower() else "Non-Compliant"
     
-    print("Checking intra-zone traffic configuration...")
-    if 'set intrazone deny' in output:
-        print("Intra-zone traffic is correctly configured as denied.")
-        return "Compliant"
-    else:
-        print("Intra-zone traffic is not configured as denied.")
-        return "Non-Compliant"
+    elif command_key == 'get_time_zone':
+        return "Compliant" if "UTC" in output else "Non-Compliant"  # Adjust based on expected timezone
 
-# Function to check Pre-Login Banner configuration
-def check_pre_login_banner(shell):
-    print("Executing Pre-Login Banner command...")
-    pre_login_command = 'show system global | grep -i pre-login-banner'
-    output = execute_commands(shell, [pre_login_command])[0][1]
-    
-    print("Checking Pre-Login Banner configuration...")
-    if 'enable' in output.lower():
-        print("Pre-Login Banner is set.")
-        return "Compliant"
-    else:
-        print("Pre-Login Banner is not set.")
-        return "Non-Compliant"
+    return "Non-Compliant"  # Default non-compliance if no conditions match
 
-# Function to check Post-Login Banner configuration
-def check_post_login_banner(shell):
-    print("Executing Post-Login Banner command...")
-    post_login_command = 'show system global | grep -i post-login-banner'
-    output = execute_commands(shell, [post_login_command])[0][1]
-    
-    print("Checking Post-Login Banner configuration...")
-    if 'enable' in output.lower():
-        print("Post-Login Banner is set.")
-        return "Compliant"
-    else:
-        print("Post-Login Banner is not set.")
-        return "Non-Compliant"
-
-# Function to write compliance status to a CSV file
-def write_to_csv(compliance_results):
-    with open('compliance_report.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Sr No.", "Control Objective", "Compliance Status"])
-        for index, result in enumerate(compliance_results, start=1):
-            writer.writerow([index, result['control_objective'], result['compliance_status']])
-
-# Example usage
-hostname = '192.168.1.1'
-username = 'admin'
-password = 'password'
-
-# Connect to FortiGate
-shell = connect_to_fortigate(hostname, username, password)
-
-if shell:
-    # List to store compliance results
-    compliance_results = []
-
-    # Check DNS compliance
-    dns_compliance = check_dns_settings(shell)
-    compliance_results.append({
-        "control_objective": "Ensure DNS server is configured",
-        "compliance_status": dns_compliance
-    })
-
-    # Check intra-zone traffic compliance
-    intrazone_compliance = check_intrazone_traffic(shell)
-    compliance_results.append({
-        "control_objective": "Ensure intra-zone traffic is not always allowed",
-        "compliance_status": intrazone_compliance
-    })
-
-    # Check Pre-Login Banner compliance
-    pre_login_banner_compliance = check_pre_login_banner(shell)
-    compliance_results.append({
-        "control_objective": "Ensure 'Pre-Login Banner' is set",
-        "compliance_status": pre_login_banner_compliance
-    })
-
-    # Check Post-Login Banner compliance
-    post_login_banner_compliance = check_post_login_banner(shell)
-    compliance_results.append({
-        "control_objective": "Ensure 'Post-Login Banner' is set",
-        "compliance_status": post_login_banner_compliance
-    })
-
-    # Write results to CSV
-    write_to_csv(compliance_results)
-    print("Compliance report has been written to 'compliance_report.csv'.")
-
-    # Close the shell connection
-    shell.close()
+if __name__ == "__main__":
+    check_compliance()

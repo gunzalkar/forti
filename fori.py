@@ -155,7 +155,7 @@ def write_to_csv(compliance_results):
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
-timezone = rf"Zulu"
+timezone = "Zulu"
 
 # Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)

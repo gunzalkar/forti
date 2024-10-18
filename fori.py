@@ -2,6 +2,15 @@ import paramiko
 import re
 import csv
 
+# Function to execute multiple commands on the FortiGate device
+def execute_commands(client, commands):
+    results = []
+    for command in commands:
+        stdin, stdout, stderr = client.exec_command(command)
+        output = stdout.read().decode('utf-8')
+        results.append((command, output))
+    return results
+
 # Function to check DNS settings
 def check_dns_settings(hostname, username, password):
     client = paramiko.SSHClient()
@@ -12,8 +21,12 @@ def check_dns_settings(hostname, username, password):
         client.connect(hostname, username=username, password=password)
         print("SSH connection successful.")
         
-        stdin, stdout, stderr = client.exec_command('get system dns')
-        output = stdout.read().decode('utf-8')
+        # Send initial command to press 'a' and then enter
+        commands = ['a', 'get system dns']
+        print("Sending initial command and executing DNS command...")
+        outputs = execute_commands(client, commands)
+        
+        dns_output = outputs[1][1]
         
         print("Checking DNS settings...")
         dns_settings = {
@@ -23,7 +36,7 @@ def check_dns_settings(hostname, username, password):
         
         for key, value in dns_settings.items():
             pattern = fr"{key}\s*:\s*{value}"
-            if not re.search(pattern, output):
+            if not re.search(pattern, dns_output):
                 print(f"DNS setting mismatch: Expected {key} to be {value}")
                 return "Non-Compliant"
         
@@ -51,11 +64,15 @@ def check_intrazone_traffic(hostname, username, password):
         client.connect(hostname, username=username, password=password)
         print("SSH connection successful.")
         
-        stdin, stdout, stderr = client.exec_command('show full-configuration system zone | grep -i intrazone')
-        output = stdout.read().decode('utf-8')
+        # Send initial command to press 'a' and then enter
+        commands = ['a', 'show full-configuration system zone | grep -i intrazone']
+        print("Sending initial command and executing intra-zone traffic command...")
+        outputs = execute_commands(client, commands)
+        
+        intrazone_output = outputs[1][1]
         
         print("Checking intra-zone traffic configuration...")
-        if 'set intrazone deny' in output:
+        if 'set intrazone deny' in intrazone_output:
             print("Intra-zone traffic is correctly configured as denied.")
             return "Compliant"
         else:
@@ -83,11 +100,15 @@ def check_pre_login_banner(hostname, username, password):
         client.connect(hostname, username=username, password=password)
         print("SSH connection successful.")
         
-        stdin, stdout, stderr = client.exec_command('show system global | grep -i pre-login-banner')
-        output = stdout.read().decode('utf-8')
+        # Send initial command to press 'a' and then enter
+        commands = ['a', 'show system global | grep -i pre-login-banner']
+        print("Sending initial command and executing Pre-Login Banner command...")
+        outputs = execute_commands(client, commands)
+        
+        pre_login_output = outputs[1][1]
         
         print("Checking Pre-Login Banner configuration...")
-        if 'enable' in output.lower():
+        if 'enable' in pre_login_output.lower():
             print("Pre-Login Banner is set.")
             return "Compliant"
         else:
@@ -115,11 +136,15 @@ def check_post_login_banner(hostname, username, password):
         client.connect(hostname, username=username, password=password)
         print("SSH connection successful.")
         
-        stdin, stdout, stderr = client.exec_command('show system global | grep -i post-login-banner')
-        output = stdout.read().decode('utf-8')
+        # Send initial command to press 'a' and then enter
+        commands = ['a', 'show system global | grep -i post-login-banner']
+        print("Sending initial command and executing Post-Login Banner command...")
+        outputs = execute_commands(client, commands)
+        
+        post_login_output = outputs[1][1]
         
         print("Checking Post-Login Banner configuration...")
-        if 'enable' in output.lower():
+        if 'enable' in post_login_output.lower():
             print("Post-Login Banner is set.")
             return "Compliant"
         else:

@@ -155,8 +155,6 @@ def write_to_csv(compliance_results):
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
-timezone = "Zulu"
-
 # Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)
 
@@ -193,11 +191,13 @@ if shell:
     })
 
     
+    timezone = rf"Asia/Kolkata"
     timezone_compliance = check_timezone(hostname, username, password, timezone)
     compliance_results.append({
         "control_objective": "Ensure timezone is properly configured",
         "compliance_status": timezone_compliance
     })
+
 
     # Write results to CSV
     write_to_csv(compliance_results)

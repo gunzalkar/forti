@@ -25,19 +25,19 @@ def check_dns_settings(hostname, username, password):
             pattern = fr"{key}\s*:\s*{value}"
             if not re.search(pattern, output):
                 print(f"DNS setting mismatch: Expected {key} to be {value}")
-                return "Non-Compliance"
+                return "Non-Compliant"
         
         print("DNS settings are correct.")
-        return "Compliance"
+        return "Compliant"
     except paramiko.AuthenticationException:
         print("Authentication failed. Please check your credentials.")
-        return "Non-Compliance"
+        return "Non-Compliant"
     except paramiko.SSHException as e:
         print(f"SSH connection error: {e}")
-        return "Non-Compliance"
+        return "Non-Compliant"
     except Exception as e:
         print(f"An error occurred: {e}")
-        return "Non-Compliance"
+        return "Non-Compliant"
     finally:
         client.close()
 

@@ -120,6 +120,22 @@ def check_timezone_configuration(shell, timezone):
     else:
         print("Timezone is not configured correctly.")
         return "Non-Compliant"
+    
+# Function to check NTP synchronization
+def check_ntp_status(shell):
+    print("Executing NTP status command...")
+    ntp_command = 'diagnose sys ntp status'
+    output = execute_commands(shell, [ntp_command])[0][1]
+    
+    print("Checking NTP synchronization status...")
+    required_strings = ['synchronized: yes', 'ntpsync: enabled', 'server-mode: enabled']
+    
+    if all(item in output.lower() for item in required_strings):
+        print("NTP is properly configured.")
+        return "Compliant"
+    else:
+        print("NTP is not properly configured.")
+        return "Non-Compliant"
 
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
@@ -133,7 +149,7 @@ def write_to_csv(compliance_results):
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
-timezone = rf"Asia/Kolkata"  # Define the timezone variable
+timezone = rf"Asia/Kolkata"
 
 # Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)
@@ -177,6 +193,11 @@ if shell:
         "compliance_status": timezone_compliance
     })
 
+    ntp_compliance = check_ntp_status(shell)
+    compliance_results.append({
+        "control_objective": "Ensure correct system time is configured through NTP",
+        "compliance_status": ntp_compliance
+    })
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

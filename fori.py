@@ -171,13 +171,13 @@ def check_auto_install(shell):
         return "Non-Compliant"
 
 # Function to check if static keys for TLS are disabled
-def check_ssl_static_key_ciphers(shell):
-    print("Executing SSL static key ciphers check...")
-    ssl_command = 'get system global | grep -i ssl-static-key-ciphers'
-    output = execute_commands(shell, [ssl_command])[0][1]
+def check_tls_static_keys(shell):
+    print("Executing TLS static key ciphers command...")
+    tls_command = 'get system global | grep -i ssl-static-key-ciphers'
+    output = execute_commands(shell, [tls_command])[0][1]
     
-    print("Checking SSL static key ciphers configuration...")
-    if 'disable' in output.lower():
+    print("Checking TLS static keys configuration...")
+    if 'ssl-static-key-ciphers: disable' in output.lower():
         print("Static keys for TLS are disabled.")
         return "Compliant"
     else:
@@ -264,10 +264,10 @@ if shell:
         "compliance_status": auto_install_compliance
     })
 
-    ssl_static_key_compliance = check_ssl_static_key_ciphers(shell)
+    tls_compliance = check_tls_static_keys(shell)
     compliance_results.append({
         "control_objective": "Disable static keys for TLS",
-        "compliance_status": ssl_static_key_compliance
+        "compliance_status": tls_compliance
     })
 
     # Write results to CSV

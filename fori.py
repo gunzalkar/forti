@@ -360,7 +360,7 @@ def check_admin_profiles(shell):
         print("Admin profiles are not correctly assigned.")
         return "Non-Compliant"
 
-# Function to check if only encrypted access channels are enabled
+# Function to check if the exact 'allowaccess' configuration exists
 def check_encrypted_access_channels(shell):
     # Send commands to check system interface settings for port1
     print("Checking encrypted access channels for port1...")
@@ -377,22 +377,12 @@ def check_encrypted_access_channels(shell):
     # Print the output for debugging purposes
     print(f"Output from port1 configuration:\n{output_interface}")
     
-    # Extract the allowaccess line to check its configuration
-    allowaccess_line = re.search(r"set allowaccess\s+(.+)", output_interface)
-    
-    if allowaccess_line:
-        allowed_access = allowaccess_line.group(1).strip().lower()
-        print(f"Access methods configured for port1: {allowed_access}")
-        
-        # Check that 'http' and 'telnet' are not present in allowed access
-        if 'http' not in allowed_access and 'telnet' not in allowed_access:
-            print("Only encrypted access channels are enabled.")
-            return "Compliant"
-        else:
-            print("Unencrypted access channels (http or telnet) are enabled.")
-            return "Non-Compliant"
+    # Check if the exact 'allowaccess' configuration line exists
+    if 'set allowaccess ping https ssh snmp' in output_interface:
+        print("Only encrypted access channels are enabled.")
+        return "Compliant"
     else:
-        print("No 'allowaccess' configuration found for port1.")
+        print("Unencrypted access channels or different configuration found.")
         return "Non-Compliant"
 
 
@@ -525,7 +515,7 @@ if shell:
         "control_objective": "Ensure admin accounts with different privileges have their correct profiles assigned",
         "compliance_status": admin_profiles_compliance
     })
-
+   
     encrypted_access_compliance = check_encrypted_access_channels(shell)
     compliance_results.append({
         "control_objective": "Ensure only encrypted access channels are enabled",

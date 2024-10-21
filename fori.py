@@ -317,7 +317,48 @@ def check_snmpv3_only(shell):
         return "Non-Compliant"
 
 
+# Function to indicate that a manual check is needed for the admin password
+def check_admin_password_manual():
+    print("Manual check is needed.")
+    return "Manual Check Needed"
 
+# Function to check if admin accounts with correct profiles are assigned
+def check_admin_profiles(shell):
+    # Check accprofile settings for tier_1
+    shell.send('config system accprofile\n')
+    time.sleep(1)
+    shell.send('edit "tier_1"\n')
+    time.sleep(1)
+    shell.send('show full\n')
+    time.sleep(1)
+    output_accprofile = execute_commands(shell, ['show full'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+
+    # Check admin settings for support1
+    shell.send('config system admin\n')
+    time.sleep(1)
+    shell.send('edit "support1"\n')
+    time.sleep(1)
+    shell.send('show full\n')
+    time.sleep(1)
+    output_admin = execute_commands(shell, ['show full'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+
+    # Check compliance conditions for accprofile
+    accprofile_compliant = 'set fwgrp custom' in output_accprofile and 'set address read-write' in output_accprofile
+
+    # Check compliance conditions for admin support1
+    admin_compliant = 'set accprofile "tier_1"' in output_admin
+
+    # Both conditions must be compliant to return Compliant
+    if accprofile_compliant and admin_compliant:
+        print("Admin profiles are correctly assigned.")
+        return "Compliant"
+    else:
+        print("Admin profiles are not correctly assigned.")
+        return "Non-Compliant"
 
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
@@ -433,6 +474,18 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure only SNMPv3 is enabled",
         "compliance_status": snmpv3_compliance
+    })
+
+    admin_password_compliance = check_admin_password_manual()
+    compliance_results.append({
+        "control_objective": "Ensure default 'admin' password is changed",
+        "compliance_status": admin_password_compliance
+    })
+
+    admin_profiles_compliance = check_admin_profiles(shell)
+    compliance_results.append({
+        "control_objective": "Ensure admin accounts with different privileges have their correct profiles assigned",
+        "compliance_status": admin_profiles_compliance
     })
 
     # Write results to CSV

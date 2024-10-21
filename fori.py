@@ -199,7 +199,34 @@ def check_global_strong_encryption(shell):
         print("Global strong encryption is not enabled.")
         return "Non-Compliant"
 
+# Function to check if the password policy is enabled and correctly configured
+def check_password_policy(shell):
+    print("Executing password policy command...")
+    password_policy_command = 'get system password-policy'
+    output = execute_commands(shell, [password_policy_command])[0][1]
+
+    print("Checking password policy configuration...")
+    required_settings = {
+        'status              : enable',
+        'apply-to            : admin-password ipsec-preshared-key',
+        'minimum-length      : 8',
+        'min-lower-case-letter: 1',
+        'min-upper-case-letter: 1',
+        'min-non-alphanumeric: 1',
+        'min-number          : 1',
+        'min-change-characters: 0',
+        'expire-status       : enable',
+        'expire-day          : 90',
+        'reuse-password      : disable'
+    }
     
+    if all(setting in output for setting in required_settings):
+        print("Password policy is enabled and correctly configured.")
+        return "Compliant"
+    else:
+        print("Password policy is not properly configured.")
+        return "Non-Compliant"
+
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -291,6 +318,13 @@ if shell:
         "control_objective": "Enable Global Strong Encryption",
         "compliance_status": encryption_compliance
     })
+
+    password_policy_compliance = check_password_policy(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 'Password Policy' is enabled",
+        "compliance_status": password_policy_compliance
+    })
+    
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

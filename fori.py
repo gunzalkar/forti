@@ -370,6 +370,8 @@ def check_encrypted_access_channels(shell):
     shell.send('show\n')
     time.sleep(1)
     output_interface = execute_commands(shell, ['show'])[0][1]
+    print("**********************************************")
+    print(output_interface)
     shell.send('end\n')
     time.sleep(1)
 

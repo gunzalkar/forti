@@ -169,7 +169,21 @@ def check_auto_install(shell):
     else:
         print("USB Firmware and configuration installation is not properly disabled.")
         return "Non-Compliant"
-        
+
+# Function to check if static keys for TLS are disabled
+def check_ssl_static_key_ciphers(shell):
+    print("Executing SSL static key ciphers check...")
+    ssl_command = 'get system global | grep -i ssl-static-key-ciphers'
+    output = execute_commands(shell, [ssl_command])[0][1]
+    
+    print("Checking SSL static key ciphers configuration...")
+    if 'disable' in output.lower():
+        print("Static keys for TLS are disabled.")
+        return "Compliant"
+    else:
+        print("Static keys for TLS are not disabled.")
+        return "Non-Compliant"
+
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -249,7 +263,13 @@ if shell:
         "control_objective": "Disable USB Firmware and configuration installation",
         "compliance_status": auto_install_compliance
     })
-    
+
+    ssl_static_key_compliance = check_ssl_static_key_ciphers(shell)
+    compliance_results.append({
+        "control_objective": "Disable static keys for TLS",
+        "compliance_status": ssl_static_key_compliance
+    })
+
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

@@ -153,7 +153,23 @@ def check_hostname(shell, host_name):
 def check_firmware_manual():
     print("Firmware check requires a manual review.")
     return "Manual Check Needed"
+
+# Function to check USB firmware and configuration installation status
+def check_auto_install(shell):
+    print("Executing auto-install configuration check...")
+    auto_install_commands = ['config system auto-install', 'get']
+    output = execute_commands(shell, auto_install_commands)[1][1]
     
+    print("Checking auto-install configuration settings...")
+    required_settings = ['auto-install-config : disable', 'auto-install-image  : disable']
+    
+    if all(setting in output.lower() for setting in required_settings):
+        print("USB Firmware and configuration installation is disabled.")
+        return "Compliant"
+    else:
+        print("USB Firmware and configuration installation is not properly disabled.")
+        return "Non-Compliant"
+        
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -228,6 +244,12 @@ if shell:
         "compliance_status": firmware_compliance
     })
 
+    auto_install_compliance = check_auto_install(shell)
+    compliance_results.append({
+        "control_objective": "Disable USB Firmware and configuration installation",
+        "compliance_status": auto_install_compliance
+    })
+    
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

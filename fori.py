@@ -270,81 +270,53 @@ def check_snmp_agent(shell):
         return "Non-Compliant"
 
 # Function to check if only SNMPv3 is enabled
-def check_snmp_v3_enabled(shell):
-    # Check SNMP sysinfo configuration
-    print("Configuring SNMP sysinfo...")
+def check_snmpv3_only(shell):
+    # Check SNMP sysinfo status
     shell.send('config system snmp sysinfo\n')
     time.sleep(1)
-    
-    print("Checking SNMP sysinfo status...")
-    sysinfo_command = 'show\n'
-    shell.send(sysinfo_command)
+    shell.send('show\n')
     time.sleep(1)
-    output_sysinfo = shell.recv(65535).decode('utf-8')
-    print("*********************************************************")
-    print(output_sysinfo)
+    output_sysinfo = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
 
-    # Check SNMP community configuration
-    print("Configuring SNMP community...")
+    # Check SNMP community settings
     shell.send('config system snmp community\n')
     time.sleep(1)
-    
-    print("Checking SNMP community configuration...")
-    community_command = 'show\n'
-    shell.send(community_command)
+    shell.send('show\n')
     time.sleep(1)
-    output_community = shell.recv(65535).decode('utf-8')
-    print("*********************************************************")
-    print(output_community)
+    output_community = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
 
-    # Check SNMP user configuration
-    print("Configuring SNMP user...")
+    # Check SNMP user settings
     shell.send('config system snmp user\n')
     time.sleep(1)
-    
-    print("Checking SNMP user configuration...")
-    user_command = 'show\n'
-    shell.send(user_command)
+    shell.send('show\n')
     time.sleep(1)
-    output_user = shell.recv(65535).decode('utf-8')
-    print("*********************************************************")
-    print(output_user)
+    output_user = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
 
-    # Evaluate compliance
-    compliant = True
-    
-    if 'enable' not in output_sysinfo.lower():
-        print("SNMP sysinfo is not enabled.")
-        compliant = False
-        
-    if 'config system snmp community' not in output_community.lower():
-        print("SNMP community is not configured properly.")
-        compliant = False
+    # Check compliance conditions
+    sysinfo_compliant = 'set status enable' in output_sysinfo.lower()
+    community_compliant = 'config system snmp community' in output_community.lower()
+    user_compliant = all(setting in output_user.lower() for setting in [
+        'set security-level auth-priv',
+        'set auth-proto sha256',
+        'set auth-pwd',
+        'set priv-proto aes256',
+        'set priv-pwd'
+    ])
 
-    required_user_settings = [
-        "set auth-proto sha256",
-        "set security-level auth-priv",
-        "set priv-proto aes256",
-        "set priv-pwd ENC",
-        "set auth-pwd ENC"
-    ]
-    
-    if not all(setting in output_user.lower() for setting in required_user_settings):
-        print("SNMP user settings are not properly configured.")
-        compliant = False
-
-    if compliant:
-        print("SNMPv3 is enabled correctly.")
+    if sysinfo_compliant and community_compliant and user_compliant:
+        print("Only SNMPv3 is enabled.")
         return "Compliant"
     else:
-        print("SNMPv3 is not enabled correctly.")
+        print("SNMPv3 is not configured correctly.")
         return "Non-Compliant"
+
+
 
 
 # Function to write compliance status to a CSV file
@@ -457,12 +429,11 @@ if shell:
         "compliance_status": snmp_agent_compliance
     })
 
-    snmp_v3_compliance = check_snmp_v3_enabled(shell)
+    snmpv3_compliance = check_snmpv3_only(shell)
     compliance_results.append({
         "control_objective": "Ensure only SNMPv3 is enabled",
-        "compliance_status": snmp_v3_compliance
+        "compliance_status": snmpv3_compliance
     })
-
 
     # Write results to CSV
     write_to_csv(compliance_results)

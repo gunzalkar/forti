@@ -281,6 +281,8 @@ def check_snmp_v3_enabled(shell):
     shell.send(sysinfo_command)
     time.sleep(1)
     output_sysinfo = shell.recv(65535).decode('utf-8')
+    print("*********************************************************")
+    print(output_sysinfo)
     shell.send('end\n')
     time.sleep(1)
 
@@ -294,6 +296,8 @@ def check_snmp_v3_enabled(shell):
     shell.send(community_command)
     time.sleep(1)
     output_community = shell.recv(65535).decode('utf-8')
+    print("*********************************************************")
+    print(output_community)
     shell.send('end\n')
     time.sleep(1)
 
@@ -307,6 +311,8 @@ def check_snmp_v3_enabled(shell):
     shell.send(user_command)
     time.sleep(1)
     output_user = shell.recv(65535).decode('utf-8')
+    print("*********************************************************")
+    print(output_user)
     shell.send('end\n')
     time.sleep(1)
 

@@ -1,4 +1,4 @@
-import paramiko # type: ignore
+import paramiko
 import re
 import csv
 import time

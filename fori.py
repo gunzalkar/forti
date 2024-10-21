@@ -227,6 +227,25 @@ def check_password_policy(shell):
         print("Password policy is not properly configured.")
         return "Non-Compliant"
 
+# Function to check if administrator password retries and lockout time are configured
+def check_admin_lockout(shell):
+    print("Executing admin lockout command...")
+    lockout_command = 'get system global | grep -i admin-lockout'
+    output = execute_commands(shell, [lockout_command])[0][1]
+
+    print("Checking administrator password retries and lockout time configuration...")
+    required_settings = {
+        'admin-lockout-duration: 60',
+        'admin-lockout-threshold: 3'
+    }
+    
+    if all(setting in output.lower() for setting in required_settings):
+        print("Administrator password retries and lockout time are correctly configured.")
+        return "Compliant"
+    else:
+        print("Administrator password retries and/or lockout time are not properly configured.")
+        return "Non-Compliant"
+    
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -323,6 +342,12 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure 'Password Policy' is enabled",
         "compliance_status": password_policy_compliance
+    })
+
+    admin_lockout_compliance = check_admin_lockout(shell)
+    compliance_results.append({
+        "control_objective": "Ensure administrator password retries and lockout time are configured",
+        "compliance_status": admin_lockout_compliance
     })
     
     # Write results to CSV

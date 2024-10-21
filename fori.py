@@ -360,6 +360,47 @@ def check_admin_profiles(shell):
         print("Admin profiles are not correctly assigned.")
         return "Non-Compliant"
 
+# Function to check if only encrypted access channels are enabled
+def check_encrypted_access(shell):
+    # Navigate to the interface settings for port1
+    shell.send('config system interface\n')
+    time.sleep(1)
+    shell.send('edit port1\n')
+    time.sleep(1)
+    shell.send('show\n')
+    time.sleep(1)
+    
+    # Capture the output of the "show" command
+    output_interface = execute_commands(shell, ['show'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+
+    # Extract the 'set allowaccess' line
+    allowaccess_line = None
+    for line in output_interface.splitlines():
+        if line.startswith('set allowaccess'):
+            allowaccess_line = line
+            break
+    
+    if allowaccess_line:
+        # Allowed access methods that must be present
+        allowed_methods = {'ping', 'https', 'ssh', 'snmp'}
+        # Extract access methods from the 'set allowaccess' line
+        access_methods = set(allowaccess_line.split()[2:])  # Extract methods after 'set allowaccess'
+        
+        # Check if only the allowed methods are present
+        if access_methods == allowed_methods:
+            print("Only encrypted access channels are enabled.")
+            return "Compliant"
+        else:
+            print("Non-compliant: Incorrect access methods configured.")
+            return "Non-Compliant"
+    else:
+        print("Non-compliant: 'set allowaccess' not found in the interface configuration.")
+        return "Non-Compliant"
+
+
+
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -488,6 +529,11 @@ if shell:
         "compliance_status": admin_profiles_compliance
     })
 
+    encrypted_access_compliance = check_encrypted_access(shell)
+    compliance_results.append({
+        "control_objective": "Ensure only encrypted access channels are enabled",
+        "compliance_status": encrypted_access_compliance
+    })
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

@@ -149,6 +149,10 @@ def check_hostname(shell, host_name):
     else:
         print("Hostname is not configured correctly.")
         return "Non-Compliant"
+
+def check_firmware_manual():
+    print("Firmware check requires a manual review.")
+    return "Manual Check Needed"
     
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
@@ -217,7 +221,13 @@ if shell:
         "control_objective": "Ensure hostname is set",
         "compliance_status": hostname_compliance
     })
-    
+
+    firmware_compliance = check_firmware_manual()
+    compliance_results.append({
+        "control_objective": "Ensure the latest firmware is installed",
+        "compliance_status": firmware_compliance
+    })
+
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

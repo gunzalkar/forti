@@ -137,17 +137,17 @@ def check_ntp_status(shell):
         print("NTP is not properly configured.")
         return "Non-Compliant"
 
-def check_hostname(shell, expected_hostname):
-    print("Executing hostname command...")
-    hostname_command = 'get system global | grep -i "hostname"'
-    output = execute_commands(shell, [hostname_command])[0][1]
+def check_hostname(shell, host_name):
+    print("Executing Hostname command...")
+    host_name_command = 'get system global | grep -i hostname'
+    output = execute_commands(shell, [host_name_command])[0][1]
     
-    print("Checking hostname configuration...")
-    if f"hostname: {expected_hostname.lower()}" in output.lower():
-        print("Hostname is correctly configured.")
+    print("Checking Hostname configuration...")
+    if host_name.lower() in output.lower():
+        print("Hostname is properly configured.")
         return "Compliant"
     else:
-        print("Hostname is not correctly configured.")
+        print("Hostname is not configured correctly.")
         return "Non-Compliant"
     
 # Function to write compliance status to a CSV file
@@ -217,6 +217,7 @@ if shell:
         "control_objective": "Ensure hostname is set",
         "compliance_status": hostname_compliance
     })
+    
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

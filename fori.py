@@ -380,6 +380,8 @@ def check_encrypted_access(shell):
     for line in output_interface.splitlines():
         if line.startswith('set allowaccess'):
             allowaccess_line = line
+            print("*****************************************************")
+            print(line)
             break
     
     if allowaccess_line:

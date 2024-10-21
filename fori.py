@@ -363,6 +363,7 @@ def check_admin_profiles(shell):
 # Function to check if only encrypted access channels are enabled
 def check_encrypted_access_channels(shell):
     # Send commands to check system interface settings for port1
+    print("Checking encrypted access channels for port1...")
     shell.send('config system interface\n')
     time.sleep(1)
     shell.send('edit port1\n')
@@ -373,25 +374,27 @@ def check_encrypted_access_channels(shell):
     shell.send('end\n')
     time.sleep(1)
     
+    # Print the output for debugging purposes
+    print(f"Output from port1 configuration:\n{output_interface}")
+    
     # Extract the allowaccess line to check its configuration
-    if "set allowaccess" in output_interface:
-        allowaccess_line = re.search(r"set allowaccess (.+)", output_interface)
-        if allowaccess_line:
-            allowed_access = allowaccess_line.group(1).strip().lower()
-
-            # Check that http and telnet are not present in allowed access
-            if 'http' not in allowed_access and 'telnet' not in allowed_access:
-                print("Only encrypted access channels are enabled.")
-                return "Compliant"
-            else:
-                print("Unencrypted access channels (http or telnet) are enabled.")
-                return "Non-Compliant"
+    allowaccess_line = re.search(r"set allowaccess\s+(.+)", output_interface)
+    
+    if allowaccess_line:
+        allowed_access = allowaccess_line.group(1).strip().lower()
+        print(f"Access methods configured for port1: {allowed_access}")
+        
+        # Check that 'http' and 'telnet' are not present in allowed access
+        if 'http' not in allowed_access and 'telnet' not in allowed_access:
+            print("Only encrypted access channels are enabled.")
+            return "Compliant"
         else:
-            print("No allowaccess configuration found.")
+            print("Unencrypted access channels (http or telnet) are enabled.")
             return "Non-Compliant"
     else:
-        print("No allowaccess configuration found in output.")
+        print("No 'allowaccess' configuration found for port1.")
         return "Non-Compliant"
+
 
 
 
@@ -521,12 +524,6 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure admin accounts with different privileges have their correct profiles assigned",
         "compliance_status": admin_profiles_compliance
-    })
-
-    encrypted_access_compliance = check_encrypted_access_channels(shell)
-    compliance_results.append({
-        "control_objective": "Ensure only encrypted access channels are enabled",
-        "compliance_status": encrypted_access_compliance
     })
 
     encrypted_access_compliance = check_encrypted_access_channels(shell)

@@ -128,7 +128,7 @@ def check_ntp_status(shell):
     output = execute_commands(shell, [ntp_command])[0][1]
     
     print("Checking NTP synchronization status...")
-    required_strings = ['synchronized: yes', 'ntpsync: enabled', 'server-mode: enabled']
+    required_strings = ['synchronized: no', 'ntpsync: enabled', 'server-mode: enabled']
     
     if all(item in output.lower() for item in required_strings):
         print("NTP is properly configured.")

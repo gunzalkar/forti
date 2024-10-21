@@ -372,6 +372,8 @@ def check_encrypted_access(shell):
     
     # Capture the output of the "show" command
     output_interface = execute_commands(shell, ['show'])[0][1]
+    print("*****************************************************")
+    print(output_interface)
     shell.send('end\n')
     time.sleep(1)
 
@@ -381,7 +383,7 @@ def check_encrypted_access(shell):
         if line.startswith('set allowaccess'):
             allowaccess_line = line
             print("*****************************************************")
-            print(line)
+            print(allowaccess_line)
             break
     
     if allowaccess_line:

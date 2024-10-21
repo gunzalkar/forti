@@ -175,6 +175,7 @@ def check_tls_static_keys(shell):
     print("Executing TLS static key ciphers command...")
     tls_command = 'get system global | grep -i ssl-static-key-ciphers'
     output = execute_commands(shell, [tls_command])[0][1]
+    print(output)
     
     print("Checking TLS static keys configuration...")
     if 'ssl-static-key-ciphers: disable' in output.lower():

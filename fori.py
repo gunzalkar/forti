@@ -245,7 +245,29 @@ def check_admin_lockout(shell):
     else:
         print("Administrator password retries and/or lockout time are not properly configured.")
         return "Non-Compliant"
-    
+
+# Function to check if the SNMP agent is disabled
+def check_snmp_agent(shell):
+    print("Configuring SNMP sysinfo...")
+    shell.send('config system snmp sysinfo\n')
+    time.sleep(1)  # Wait for command to execute
+
+    print("Executing command to check SNMP status...")
+    status_command = 'show full | grep -i status'
+    output = execute_commands(shell, [status_command])[0][1]
+
+    # Send the 'end' command to exit the configuration mode
+    shell.send('end\n')
+    time.sleep(1)  # Wait for command to execute
+
+    print("Checking SNMP agent status...")
+    if 'disable' in output.lower():
+        print("SNMP agent is disabled.")
+        return "Compliant"
+    else:
+        print("SNMP agent is not disabled.")
+        return "Non-Compliant"
+
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -349,7 +371,13 @@ if shell:
         "control_objective": "Ensure administrator password retries and lockout time are configured",
         "compliance_status": admin_lockout_compliance
     })
-    
+
+    snmp_agent_compliance = check_snmp_agent(shell)
+    compliance_results.append({
+        "control_objective": "Ensure SNMP agent is disabled",
+        "compliance_status": snmp_agent_compliance
+    })
+
     # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

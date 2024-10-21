@@ -362,7 +362,7 @@ def check_admin_profiles(shell):
 
 # Function to check if only encrypted access channels are enabled
 def check_encrypted_access_channels(shell):
-    # Check system interface settings for port1
+    # Send commands to check system interface settings for port1
     shell.send('config system interface\n')
     time.sleep(1)
     shell.send('edit port1\n')
@@ -370,18 +370,30 @@ def check_encrypted_access_channels(shell):
     shell.send('show\n')
     time.sleep(1)
     output_interface = execute_commands(shell, ['show'])[0][1]
-    print("**********************************************")
-    print(output_interface)
     shell.send('end\n')
     time.sleep(1)
+    
+    # Extract the allowaccess line to check its configuration
+    if "set allowaccess" in output_interface:
+        allowaccess_line = re.search(r"set allowaccess (.+)", output_interface)
+        if allowaccess_line:
+            allowed_access = allowaccess_line.group(1).strip().lower()
 
-    # Check if http and telnet are not present in the output
-    if 'http' not in output_interface.lower() and 'telnet' not in output_interface.lower():
-        print("Only encrypted access channels are enabled.")
-        return "Compliant"
+            # Check that http and telnet are not present in allowed access
+            if 'http' not in allowed_access and 'telnet' not in allowed_access:
+                print("Only encrypted access channels are enabled.")
+                return "Compliant"
+            else:
+                print("Unencrypted access channels (http or telnet) are enabled.")
+                return "Non-Compliant"
+        else:
+            print("No allowaccess configuration found.")
+            return "Non-Compliant"
     else:
-        print("Unencrypted access channels (http or telnet) are enabled.")
+        print("No allowaccess configuration found in output.")
         return "Non-Compliant"
+
+
 
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
@@ -516,6 +528,13 @@ if shell:
         "control_objective": "Ensure only encrypted access channels are enabled",
         "compliance_status": encrypted_access_compliance
     })
+
+    encrypted_access_compliance = check_encrypted_access_channels(shell)
+    compliance_results.append({
+        "control_objective": "Ensure only encrypted access channels are enabled",
+        "compliance_status": encrypted_access_compliance
+    })
+
 
     # Write results to CSV
     write_to_csv(compliance_results)

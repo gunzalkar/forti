@@ -170,11 +170,11 @@ def check_auto_install(shell):
         print("USB Firmware and configuration installation is not properly disabled.")
         return "Non-Compliant"
 
-# Function to check if static keys for TLS are disabled
+# Function to check USB firmware and configuration installation status
 def check_tls_static_keys(shell):
     print("Executing TLS static key ciphers command...")
-    tls_command = 'get system global | grep -i ssl-static-key-ciphers'
-    output = execute_commands(shell, [tls_command])[0][1]
+    auto_install_commands = ['end', 'get system global | grep -i ssl-static-key-ciphers']
+    output = execute_commands(shell, auto_install_commands)[1][1]
     print(output)
     
     print("Checking TLS static keys configuration...")

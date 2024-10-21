@@ -1,4 +1,4 @@
-import paramiko
+import paramiko # type: ignore
 import re
 import csv
 import time
@@ -128,7 +128,7 @@ def check_ntp_status(shell):
     output = execute_commands(shell, [ntp_command])[0][1]
     
     print("Checking NTP synchronization status...")
-    required_strings = ['synchronized: no', 'ntpsync: enabled', 'server-mode: enabled']
+    required_strings = ['synchronized: yes', 'ntpsync: enabled', 'server-mode: enabled']
     
     if all(item in output.lower() for item in required_strings):
         print("NTP is properly configured.")
@@ -137,6 +137,20 @@ def check_ntp_status(shell):
         print("NTP is not properly configured.")
         return "Non-Compliant"
 
+# Function to check hostname configuration
+def check_hostname(shell, expected_hostname):
+    print("Executing hostname command...")
+    hostname_command = 'get system global | grep -i "hostname"'
+    output = execute_commands(shell, [hostname_command])[0][1]
+    
+    print("Checking hostname configuration...")
+    if f"hostname: {expected_hostname.lower()}" in output.lower():
+        print("Hostname is correctly configured.")
+        return "Compliant"
+    else:
+        print("Hostname is not correctly configured.")
+        return "Non-Compliant"
+    
 # Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -149,8 +163,8 @@ def write_to_csv(compliance_results):
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
-timezone = rf"Asia/Kolkata"  # Define the timezone variable
-
+timezone = rf"Asia/Kolkata"
+hostname = "New_FGT1"
 # Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)
 
@@ -197,6 +211,11 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure correct system time is configured through NTP",
         "compliance_status": ntp_compliance
+    })
+    hostname_compliance = check_hostname(shell, hostname)
+    compliance_results.append({
+        "control_objective": "Ensure hostname is set",
+        "compliance_status": hostname_compliance
     })
     # Write results to CSV
     write_to_csv(compliance_results)

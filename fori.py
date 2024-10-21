@@ -249,6 +249,7 @@ def check_admin_lockout(shell):
 # Function to check if the SNMP agent is disabled
 def check_snmp_agent(shell):
     print("Configuring SNMP sysinfo...")
+    shell.send('end\n')
     shell.send('config system snmp sysinfo\n')
     time.sleep(1)  # Wait for command to execute
 

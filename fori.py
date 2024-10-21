@@ -163,7 +163,7 @@ hostname = '192.168.1.1'
 username = 'admin'
 password = 'password'
 timezone = rf"Asia/Kolkata"
-hostname = "New_FGT1"
+host_name = "New_FGT1"
 # Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)
 
@@ -212,7 +212,7 @@ if shell:
         "compliance_status": ntp_compliance
     })
     
-    hostname_compliance = check_hostname(shell, hostname)
+    hostname_compliance = check_hostname(shell, host_name)
     compliance_results.append({
         "control_objective": "Ensure hostname is set",
         "compliance_status": hostname_compliance

@@ -2,6 +2,7 @@ import paramiko
 import re
 import csv
 import time
+import re
 
 # Function to execute multiple commands on the FortiGate device
 def execute_commands(shell, commands):
@@ -518,7 +519,40 @@ def check_security_fabric():
     print("Manual check needed: Ensure Security Fabric is configured.")
     return "Manual check needed"
 
+def check_trusted_signed_certificate():
+    print("Manual check needed: Apply a Trusted Signed Certificate for VPN Portal.")
+    return "Manual check needed"
 
+def check_auth_lockout_settings(shell):
+    print("Executing authentication lockout settings command...")
+    lockout_command = 'config user setting\nshow\nend'
+    output = execute_commands(shell, [lockout_command])[0][1]
+    
+    print("Checking authentication lockout settings...")
+    required_settings = [
+        "set auth-lockout-threshold 5",
+        "set auth-lockout-duration 300"
+    ]
+    
+    if all(setting in output for setting in required_settings):
+        print("Authentication lockout settings are correctly configured.")
+        return "Compliant"
+    else:
+        print("Authentication lockout settings are not configured correctly.")
+        return "Non-Compliant"
+    
+def check_event_logging(shell):
+    print("Executing event logging status command...")
+    event_logging_command = 'config log eventfilter\nget\nend'
+    output = execute_commands(shell, [event_logging_command])[0][1]
+    
+    print("Checking event logging status...")
+    if re.search(r'\bevent\s*:\s*enable\b', output):
+        print("Event logging is enabled.")
+        return "Compliant"
+    else:
+        print("Event logging is not enabled.")
+        return "Non-Compliant"
 
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -715,6 +749,24 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure Security Fabric is Configured",
         "compliance_status": security_fabric_compliance
+    })
+
+    trusted_signed_certificate_compliance = check_trusted_signed_certificate()
+    compliance_results.append({
+        "control_objective": "Apply a Trusted Signed Certificate for VPN Portal",
+        "compliance_status": trusted_signed_certificate_compliance
+    })
+
+    auth_lockout_compliance = check_auth_lockout_settings(shell)
+    compliance_results.append({
+        "control_objective": "Configuring the maximum login attempts and lockout period",
+        "compliance_status": auth_lockout_compliance
+    })
+
+    event_logging_compliance = check_event_logging(shell)
+    compliance_results.append({
+        "control_objective": "Enable Event Logging",
+        "compliance_status": event_logging_compliance
     })
 
     write_to_csv(compliance_results)

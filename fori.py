@@ -519,6 +519,9 @@ def check_auth_lockout_settings(shell):
     shell.send('end\n')
     time.sleep(1)
 
+    print("******************************************************************")
+    print(output_ha_mgmt)
+
     if '5' and '300' in output_ha_mgmt:
         print("Authentication lockout settings are correctly configured.")
         return "Compliant"
@@ -538,7 +541,6 @@ def check_event_logging(shell):
     time.sleep(1)  # Allow time for the command to execute
 
     print("******************************************************************")
-    print(output_event_logging)
 
     # Check if 'event : enable' is present in the output
     if re.search(r'\bevent\s*:\s*enable\b', output_event_logging):

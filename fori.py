@@ -176,8 +176,7 @@ def check_tls_static_keys(shell):
     print("Executing TLS static key ciphers command...")
     auto_install_commands = ['end', 'get system global | grep -i ssl-static-key-ciphers']
     output = execute_commands(shell, auto_install_commands)[1][1]
-    print(output)
-    
+
     print("Checking TLS static keys configuration...")
     if 'ssl-static-key-ciphers: disable' in output.lower():
         print("Static keys for TLS are disabled.")
@@ -395,8 +394,6 @@ def check_ha_configuration(shell):
     shell.send('end\n')
     time.sleep(1)
     
-    # Print the output for debugging purposes
-    print(f"Output from HA configuration:\n{output_ha}")
     
     # Check if 'set mode a-p' exists in the HA configuration
     if 'set mode a-p' in output_ha:
@@ -420,9 +417,6 @@ def check_ha_monitor_interfaces(shell):
     shell.send('end\n')
     time.sleep(1)
     
-    # Print the output for debugging purposes
-    print(f"Output from HA Monitor Interfaces:\n{output_ha_monitor}")
-    
     # Check if 'set monitor' exists in the HA configuration
     if 'set monitor' in output_ha_monitor:
         print("Monitor Interfaces for HA devices is enabled.")
@@ -443,11 +437,7 @@ def check_ha_mgmt_interface(shell):
     output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
-    
-    # Print the output for debugging purposes
-    print(f"Output from HA Management Interface:\n{output_ha_mgmt}")
-    
-    # Check if 'config ha-mgmt-interfaces' exists in the HA configuration
+
     if 'config ha-mgmt-interfaces' in output_ha_mgmt:
         print("HA Reserved Management Interface is configured.")
         return "Compliant"
@@ -535,20 +525,22 @@ def check_auth_lockout_settings(shell):
     else:
         print("Authentication lockout settings are not configured correctly.")
         return "Non-Compliant"
-
+    
 def check_event_logging(shell):
     print("Executing event logging status command...")
     shell.send('config log eventfilter\n')
-    time.sleep(1)
-    shell.send('get | grep -i event\n')
-    time.sleep(1)
-    output_ha_mgmt = execute_commands(shell, ['get | grep -i event'])[0][1]
+    time.sleep(1)  # Allow time for the command to execute
+    shell.send('get\n')
+    time.sleep(1)  # Allow time for the command to execute
+    output_event_logging = shell.recv(65535).decode('utf-8')  # Receive output
     shell.send('end\n')
-    time.sleep(1)
-    print("******************************************************************")
-    print(output_ha_mgmt)
+    time.sleep(1)  # Allow time for the command to execute
 
-    if 'enable' in output_ha_mgmt:
+    print("******************************************************************")
+    print(output_event_logging)
+
+    # Check if 'event : enable' is present in the output
+    if re.search(r'\bevent\s*:\s*enable\b', output_event_logging):
         print("Event logging is enabled.")
         return "Compliant"
     else:

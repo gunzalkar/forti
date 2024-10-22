@@ -528,6 +528,7 @@ def check_auth_lockout_settings(shell):
     
 def check_event_logging(shell):
     print("Executing event logging status command...")
+    shell.send('end\n')
     shell.send('config log eventfilter\n')
     time.sleep(1)  # Allow time for the command to execute
     shell.send('get\n')

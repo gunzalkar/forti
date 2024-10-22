@@ -507,47 +507,46 @@ def check_antivirus_definition_updates(shell):
 def check_antivirus_security_profile():
     print("Manual check needed: Ensure Antivirus Security Profile is applied to Policies.")
     return "Manual check needed"
-
 def check_botnet_cnc_domain_blocking():
     print("Manual check needed: Ensure Botnet C&C Domain Blocking DNS Filter is enabled.")
     return "Manual check needed"
 def check_compromised_host_quarantine():
     print("Manual check needed: Ensure Compromised Host Quarantine is enabled.")
     return "Manual check needed"
-
 def check_security_fabric():
     print("Manual check needed: Ensure Security Fabric is configured.")
     return "Manual check needed"
-
 def check_trusted_signed_certificate():
     print("Manual check needed: Apply a Trusted Signed Certificate for VPN Portal.")
     return "Manual check needed"
-
+    
 def check_auth_lockout_settings(shell):
-    print("Executing authentication lockout settings command...")
-    lockout_command = 'config user setting\nshow\nend'
-    output = execute_commands(shell, [lockout_command])[0][1]
-    
-    print("Checking authentication lockout settings...")
-    required_settings = [
-        "set auth-lockout-threshold 5",
-        "set auth-lockout-duration 300"
-    ]
-    
-    if all(setting in output for setting in required_settings):
+    shell.send('config user setting\n')
+    time.sleep(1)
+    shell.send('show\n')
+    time.sleep(1)
+    output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+
+    if '5' and '300' in output_ha_mgmt:
         print("Authentication lockout settings are correctly configured.")
         return "Compliant"
     else:
         print("Authentication lockout settings are not configured correctly.")
         return "Non-Compliant"
-    
+
 def check_event_logging(shell):
     print("Executing event logging status command...")
-    event_logging_command = 'config log eventfilter\nget\nend'
-    output = execute_commands(shell, [event_logging_command])[0][1]
-    
-    print("Checking event logging status...")
-    if re.search(r'\bevent\s*:\s*enable\b', output):
+    shell.send('config log eventfilter\n')
+    time.sleep(1)
+    shell.send('get | grep -i event\n')
+    time.sleep(1)
+    output_ha_mgmt = execute_commands(shell, ['get | grep -i event'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+
+    if 'enable' in output_ha_mgmt:
         print("Event logging is enabled.")
         return "Compliant"
     else:

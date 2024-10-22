@@ -466,6 +466,44 @@ def check_unused_firewall_policies():
     print("Manual check is needed to ensure there are no unused firewall policies.")
     return "Manual Check Needed"
 
+def check_botnet_connections():
+    print("Manual check is needed to detect botnet connections.")
+    return "Manual Check Needed"
+
+# Function to check Antivirus Definition Push Updates configuration
+def check_antivirus_definition_updates(shell):
+    print("Executing Antivirus Definition Push Updates command...")
+    
+    # Commands to execute
+    commands = [
+        'end',
+        'config system autoupdate',
+        'show'
+        'end',
+        'config system autoupdate push-update',
+        'show',
+        'end',
+        'config system autoupdate schedule',
+        'show',
+        'end',
+        'config system autoupdate tunneling',
+        'show',
+        'end'
+    ]
+    
+    # Execute commands
+    outputs = execute_commands(shell, commands)
+
+    # Check for 'set status enable' in the output
+    for output in outputs:
+        if 'set status enable' in output[1].lower():
+            print("Antivirus Definition Push Updates are configured.")
+            return "Compliant"
+    
+    print("Antivirus Definition Push Updates are not configured.")
+    return "Non-Compliant"
+
+
 
 
 def write_to_csv(compliance_results):
@@ -627,6 +665,18 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure that there are no firewall policies that are unused",
         "compliance_status": unused_firewall_policies_compliance
+    })
+
+    botnet_connections_compliance = check_botnet_connections()
+    compliance_results.append({
+        "control_objective": "Detect Botnet Connections",
+        "compliance_status": botnet_connections_compliance
+    })
+
+    antivirus_updates_compliance = check_antivirus_definition_updates(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Antivirus Definition Push Updates are Configured",
+        "compliance_status": antivirus_updates_compliance
     })
 
     write_to_csv(compliance_results)

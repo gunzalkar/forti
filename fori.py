@@ -515,6 +515,7 @@ def check_auth_lockout_settings(shell):
     print("Checking Lockout Timeouts...")
     # Commands to execute
     commands = [
+        'a',
         'end',
         'config user setting',
         'get | grep -i auth-lock'

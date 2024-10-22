@@ -374,9 +374,6 @@ def check_encrypted_access_channels(shell):
     shell.send('end\n')
     time.sleep(1)
     
-    # Print the output for debugging purposes
-    print(f"Output from port1 configuration:\n{output_interface}")
-    
     # Check if the exact 'allowaccess' configuration line exists
     if 'set allowaccess ping https ssh snmp' in output_interface:
         print("Only encrypted access channels are enabled.")
@@ -410,7 +407,52 @@ def check_ha_configuration(shell):
 
 
 
+# Function to check if Monitor Interfaces for HA devices is enabled
+def check_ha_monitor_interfaces(shell):
+    # Send commands to check HA settings
+    print("Checking Monitor Interfaces in High Availability configuration...")
+    shell.send('config system ha\n')
+    time.sleep(1)
+    shell.send('show\n')
+    time.sleep(1)
+    output_ha_monitor = execute_commands(shell, ['show'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+    
+    # Print the output for debugging purposes
+    print(f"Output from HA Monitor Interfaces:\n{output_ha_monitor}")
+    
+    # Check if 'set monitor' exists in the HA configuration
+    if 'set monitor' in output_ha_monitor:
+        print("Monitor Interfaces for HA devices is enabled.")
+        return "Compliant"
+    else:
+        print("Monitor Interfaces for HA devices is not enabled.")
+        return "Non-Compliant"
 
+
+# Function to check if HA Reserved Management Interface is configured
+def check_ha_mgmt_interface(shell):
+    # Send commands to check HA settings
+    print("Checking HA Reserved Management Interface configuration...")
+    shell.send('config system ha\n')
+    time.sleep(1)
+    shell.send('show\n')
+    time.sleep(1)
+    output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+    
+    # Print the output for debugging purposes
+    print(f"Output from HA Management Interface:\n{output_ha_mgmt}")
+    
+    # Check if 'config ha-mgmt-interfaces' exists in the HA configuration
+    if 'config ha-mgmt-interfaces' in output_ha_mgmt:
+        print("HA Reserved Management Interface is configured.")
+        return "Compliant"
+    else:
+        print("HA Reserved Management Interface is not configured.")
+        return "Non-Compliant"
 
 
 
@@ -556,7 +598,20 @@ if shell:
         "compliance_status": ha_compliance
     })
 
+    ha_monitor_compliance = check_ha_monitor_interfaces(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 'Monitor Interfaces' for High Availability Devices is Enabled",
+        "compliance_status": ha_monitor_compliance
+    })
+
+    ha_mgmt_compliance = check_ha_mgmt_interface(shell)
+    compliance_results.append({
+        "control_objective": "Ensure HA Reserved Management Interface is Configured",
+        "compliance_status": ha_mgmt_compliance
+    })
+
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")
 
     shell.close()
+

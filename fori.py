@@ -45,7 +45,6 @@ def connect_to_fortigate(hostname, username, password):
         print(f"An error occurred: {e}")
         return None
 
-
 # Function to check FortiAnalyzer/FortiManager log encryption settings
 def check_fortianalyzer_encryption(shell):
     print("Executing FortiAnalyzer/FortiManager log encryption command...")
@@ -62,8 +61,6 @@ def check_fortianalyzer_encryption(shell):
     else:
         print("Log encryption is not set to high.")
         return "Non-Compliant"
-
-# Example usage to add in the compliance results
 
 
 def write_to_csv(compliance_results):
@@ -83,6 +80,7 @@ shell = connect_to_fortigate(hostname, username, password)
 if shell:
     compliance_results = []
 
+    # Example usage to add in the compliance results
     fortianalyzer_encryption_compliance = check_fortianalyzer_encryption(shell)
     compliance_results.append({
         "control_objective": "Encrypt Log Transmission to FortiAnalyzer / FortiManager",

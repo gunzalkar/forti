@@ -507,6 +507,16 @@ def check_antivirus_security_profile():
     print("Manual check needed: Ensure Antivirus Security Profile is applied to Policies.")
     return "Manual check needed"
 
+def check_botnet_cnc_domain_blocking():
+    print("Manual check needed: Ensure Botnet C&C Domain Blocking DNS Filter is enabled.")
+    return "Manual check needed"
+def check_compromised_host_quarantine():
+    print("Manual check needed: Ensure Compromised Host Quarantine is enabled.")
+    return "Manual check needed"
+
+def check_security_fabric():
+    print("Manual check needed: Ensure Security Fabric is configured.")
+    return "Manual check needed"
 
 
 
@@ -687,6 +697,24 @@ if shell:
     compliance_results.append({
         "control_objective": "Apply Antivirus Security Profile to Policies",
         "compliance_status": antivirus_profile_compliance
+    })
+
+    botnet_cnc_domain_blocking_compliance = check_botnet_cnc_domain_blocking()
+    compliance_results.append({
+        "control_objective": "Enable Botnet C&C Domain Blocking DNS Filter",
+        "compliance_status": botnet_cnc_domain_blocking_compliance
+    })
+
+    compromised_host_quarantine_compliance = check_compromised_host_quarantine()
+    compliance_results.append({
+        "control_objective": "Enable Compromised Host Quarantine",
+        "compliance_status": compromised_host_quarantine_compliance
+    })
+
+    security_fabric_compliance = check_security_fabric()
+    compliance_results.append({
+        "control_objective": "Ensure Security Fabric is Configured",
+        "compliance_status": security_fabric_compliance
     })
 
     write_to_csv(compliance_results)

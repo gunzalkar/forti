@@ -437,8 +437,6 @@ def check_ha_mgmt_interface(shell):
     output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
-    print("******************************************************************")
-    print(output_ha_mgmt)
 
     if 'config ha-mgmt-interfaces' in output_ha_mgmt:
         print("HA Reserved Management Interface is configured.")
@@ -513,20 +511,24 @@ def check_trusted_signed_certificate():
     return "Manual check needed"
     
 def check_auth_lockout_settings(shell):
-    print("Executing authentication lockout settings command...")
-    auth_lockout_command = 'end\nconfig user setting\nget | grep -i auth-lock\nend'
-    output = execute_commands(shell, [auth_lockout_command])[0][1]
-    print("*"*20)
-    print(output)
-
-    print("Checking authentication lockout settings...")
-    if "auth-lockout-threshold: 5" in output and "auth-lockout-duration: 300" in output:
-        print("Authentication lockout settings are correctly configured.")
+    # Send commands to check system interface settings for port1
+    print("Checking Lockout Timeouts...")
+    shell.send('config user setting\n')
+    time.sleep(1)
+    outt = shell.send('get | grep -i auth-lock\n')
+    time.sleep(1)
+    shell.send('end\n')
+    time.sleep(1)
+    print("*"*50)
+    print(outt)
+    
+    # Check if the exact 'allowaccess' configuration line exists
+    if '5' and '300' in outt:
+        print("Only encrypted access channels are enabled.")
         return "Compliant"
     else:
-        print("Authentication lockout settings are not correctly configured.")
+        print("Unencrypted access channels or different configuration found.")
         return "Non-Compliant"
-
 
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:

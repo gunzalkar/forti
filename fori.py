@@ -50,6 +50,8 @@ def check_dns_settings(shell):
     print("Executing DNS command...")
     dns_command = 'get system dns'
     output = execute_commands(shell, [dns_command])[0][1]
+    print("****************************************")
+    print(output)
     
     print("Checking DNS settings...")
     dns_settings = {

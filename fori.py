@@ -513,21 +513,26 @@ def check_trusted_signed_certificate():
 def check_auth_lockout_settings(shell):
     # Send commands to check system interface settings for port1
     print("Checking Lockout Timeouts...")
-    shell.send('config user setting\n')
-    time.sleep(1)
-    outt = shell.send('get | grep -i auth-lock\n')
-    time.sleep(1)
-    shell.send('end\n')
-    time.sleep(1)
-    print(outt)
+    # Commands to execute
+    commands = [
+        'end',
+        'config user setting',
+        'get | grep -i auth-lock'
+        'end'
+    ]
     
-    # Check if the exact 'allowaccess' configuration line exists
-    if '5' and '300' in outt:
-        print("Only encrypted access channels are enabled.")
-        return "Compliant"
-    else:
-        print("Unencrypted access channels or different configuration found.")
-        return "Non-Compliant"
+    # Execute commands
+    outputs = execute_commands(shell, commands)
+
+    # Check for 'set status enable' in the output
+    for output in outputs:
+        if '5' and '300' in output[1].lower():
+            print("Antivirus Definition Push Updates are configured.")
+            return "Compliant"
+    
+    print("Antivirus Definition Push Updates are not configured.")
+    return "Non-Compliant"
+
 
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:

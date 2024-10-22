@@ -385,6 +385,34 @@ def check_encrypted_access_channels(shell):
         print("Unencrypted access channels or different configuration found.")
         return "Non-Compliant"
 
+# Function to check High Availability configuration
+def check_ha_configuration(shell):
+    # Send commands to check HA settings
+    print("Checking High Availability configuration...")
+    shell.send('config system ha\n')
+    time.sleep(1)
+    shell.send('show\n')
+    time.sleep(1)
+    output_ha = execute_commands(shell, ['show'])[0][1]
+    shell.send('end\n')
+    time.sleep(1)
+    
+    # Print the output for debugging purposes
+    print(f"Output from HA configuration:\n{output_ha}")
+    
+    # Check if 'set mode a-p' exists in the HA configuration
+    if 'set mode a-p' in output_ha:
+        print("High Availability is configured in Active-Passive mode.")
+        return "Compliant"
+    else:
+        print("High Availability is not properly configured.")
+        return "Non-Compliant"
+
+
+
+
+
+
 
 
 
@@ -522,10 +550,13 @@ if shell:
         "compliance_status": encrypted_access_compliance
     })
 
+    ha_compliance = check_ha_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Ensure High Availability Configuration",
+        "compliance_status": ha_compliance
+    })
 
-    # Write results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")
 
-    # Close the shell connection
     shell.close()

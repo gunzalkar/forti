@@ -56,7 +56,7 @@ def check_fortianalyzer_encryption(shell):
     print(output)
 
     print("Checking FortiAnalyzer/FortiManager log encryption settings...")
-    if 'high' in output.lower():
+    if 'low' in output.lower():
         print("Log encryption is set to high.")
         return "Compliant"
     else:

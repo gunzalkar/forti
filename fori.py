@@ -523,6 +523,8 @@ def check_auth_lockout_settings(shell):
     
     # Execute commands
     outputs = execute_commands(shell, commands)
+    print("*********************************************************************")
+    print(output)
 
     # Check for 'set status enable' in the output
     for output in outputs:

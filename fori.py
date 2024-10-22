@@ -545,6 +545,8 @@ def check_event_logging(shell):
     output_ha_mgmt = execute_commands(shell, ['get | grep -i event'])[0][1]
     shell.send('end\n')
     time.sleep(1)
+    print("******************************************************************")
+    print(output_ha_mgmt)
 
     if 'enable' in output_ha_mgmt:
         print("Event logging is enabled.")

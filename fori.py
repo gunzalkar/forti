@@ -437,6 +437,8 @@ def check_ha_mgmt_interface(shell):
     output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
+    print("******************************************************************")
+    print(output_ha_mgmt)
 
     if 'config ha-mgmt-interfaces' in output_ha_mgmt:
         print("HA Reserved Management Interface is configured.")
@@ -518,9 +520,6 @@ def check_auth_lockout_settings(shell):
     output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
     shell.send('end\n')
     time.sleep(1)
-
-    print("******************************************************************")
-    print(output_ha_mgmt)
 
     if '5' and '300' in output_ha_mgmt:
         print("Authentication lockout settings are correctly configured.")

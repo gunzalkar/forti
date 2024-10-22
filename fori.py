@@ -598,7 +598,7 @@ def check_centralized_logging(shell):
     print("All log settings are Compliant.")
     return "Compliant (Manual Check Suggested)"
 
-def check_dns_filter_policy():
+def check_dns_filter_policy(shell):
     print("Manual check needed:DNS Filter.")
     return "Manual check needed"
 

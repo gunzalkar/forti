@@ -48,7 +48,7 @@ def connect_to_fortigate(hostname, username, password):
 # Function to check FortiAnalyzer/FortiManager log encryption settings
 def check_fortianalyzer_encryption(shell):
     print("Executing FortiAnalyzer/FortiManager log encryption command...")
-    log_encryption_command = 'end\nconfig log fortianalyzer setting\n set status enable\nget | grep -i enc\nend'
+    log_encryption_command = 'end\nconfig log fortianalyzer setting\nget | grep -i enc\nend'
     output = execute_commands(shell, [log_encryption_command])[0][1]
     
     print("****************************************")

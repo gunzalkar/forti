@@ -454,11 +454,20 @@ def check_ha_mgmt_interface(shell):
         print("HA Reserved Management Interface is not configured.")
         return "Non-Compliant"
 
+def check_unused_policies():
+    print("Manual check is needed for reviewing unused policies.")
+    return "Manual Check Needed"
+
+def check_unique_policy_names():
+    print("Manual check is needed to ensure policies are uniquely named.")
+    return "Manual Check Needed"
+
+def check_unused_firewall_policies():
+    print("Manual check is needed to ensure there are no unused firewall policies.")
+    return "Manual Check Needed"
 
 
 
-
-# Function to write compliance status to a CSV file
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -466,48 +475,40 @@ def write_to_csv(compliance_results):
         for index, result in enumerate(compliance_results, start=1):
             writer.writerow([index, result['control_objective'], result['compliance_status']])
 
-# Example usage
 hostname = '192.168.1.1'
 username = 'admin'
 password = 'password@Gat1'
 timezone = rf"Asia/Kolkata"
 host_name = "New_FGT1"
-# Connect to FortiGate
 shell = connect_to_fortigate(hostname, username, password)
 
 if shell:
-    # List to store compliance results
     compliance_results = []
 
-    # Check DNS compliance
     dns_compliance = check_dns_settings(shell)
     compliance_results.append({
         "control_objective": "Ensure DNS server is configured",
         "compliance_status": dns_compliance
     })
 
-    # Check intra-zone traffic compliance
     intrazone_compliance = check_intrazone_traffic(shell)
     compliance_results.append({
         "control_objective": "Ensure intra-zone traffic is not always allowed",
         "compliance_status": intrazone_compliance
     })
 
-    # Check Pre-Login Banner compliance
     pre_login_banner_compliance = check_pre_login_banner(shell)
     compliance_results.append({
         "control_objective": "Ensure 'Pre-Login Banner' is set",
         "compliance_status": pre_login_banner_compliance
     })
 
-    # Check Post-Login Banner compliance
     post_login_banner_compliance = check_post_login_banner(shell)
     compliance_results.append({
         "control_objective": "Ensure 'Post-Login Banner' is set",
         "compliance_status": post_login_banner_compliance
     })
 
-    # Check Timezone compliance
     timezone_compliance = check_timezone_configuration(shell, timezone)
     compliance_results.append({
         "control_objective": "Ensure timezone is properly configured",
@@ -610,8 +611,25 @@ if shell:
         "compliance_status": ha_mgmt_compliance
     })
 
+    unused_policies_compliance = check_unused_policies()
+    compliance_results.append({
+        "control_objective": "Ensure that unused policies are reviewed regularly",
+        "compliance_status": unused_policies_compliance
+    })
+
+    unique_policy_names_compliance = check_unique_policy_names()
+    compliance_results.append({
+        "control_objective": "Ensure Policies are Uniquely Named",
+        "compliance_status": unique_policy_names_compliance
+    })
+
+    unused_firewall_policies_compliance = check_unused_firewall_policies()
+    compliance_results.append({
+        "control_objective": "Ensure that there are no firewall policies that are unused",
+        "compliance_status": unused_firewall_policies_compliance
+    })
+
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")
 
     shell.close()
-

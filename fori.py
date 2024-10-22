@@ -503,6 +503,10 @@ def check_antivirus_definition_updates(shell):
     print("Antivirus Definition Push Updates are not configured.")
     return "Non-Compliant"
 
+def check_antivirus_security_profile():
+    print("Manual check needed: Ensure Antivirus Security Profile is applied to Policies.")
+    return "Manual check needed"
+
 
 
 
@@ -677,6 +681,12 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure Antivirus Definition Push Updates are Configured",
         "compliance_status": antivirus_updates_compliance
+    })
+
+    antivirus_profile_compliance = check_antivirus_security_profile()
+    compliance_results.append({
+        "control_objective": "Apply Antivirus Security Profile to Policies",
+        "compliance_status": antivirus_profile_compliance
     })
 
     write_to_csv(compliance_results)

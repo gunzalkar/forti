@@ -533,6 +533,24 @@ def check_auth_lockout_settings(shell):
     print("Authentication lockout settings are correct.")
     return "Compliant"
 
+# Function to check event logging settings
+def check_event_logging_settings(shell):
+    print("Executing event logging settings command...")
+    event_logging_command = 'end\nconfig log eventfilter\nget | grep -i event\nend'
+    output = execute_commands(shell, [event_logging_command])[0][1]
+    
+    print("****************************************")
+    print(output)
+
+    print("Checking event logging settings...")
+    if 'enable' in output.lower():
+        print("Event logging is enabled.")
+        return "Compliant"
+    else:
+        print("Event logging is not enabled.")
+        return "Non-Compliant"
+
+
 
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -551,14 +569,13 @@ shell = connect_to_fortigate(hostname, username, password)
 if shell:
     compliance_results = []
     # Example usage to add in the compliance results
-    auth_lockout_compliance = check_auth_lockout_settings(shell)
+    event_logging_compliance = check_event_logging_settings(shell)
     compliance_results.append({
-        "control_objective": "Configuring the maximum login attempts and lockout period",
-        "compliance_status": auth_lockout_compliance
+        "control_objective": "Enable Event Logging",
+        "compliance_status": event_logging_compliance
     })
 
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")
 
     shell.close()
-    

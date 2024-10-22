@@ -516,6 +516,8 @@ def check_auth_lockout_settings(shell):
     print("Executing authentication lockout settings command...")
     auth_lockout_command = 'end\nconfig user setting\nget | grep -i auth-lock\nend'
     output = execute_commands(shell, [auth_lockout_command])[0][1]
+    print("*"*20)
+    print(output)
 
     print("Checking authentication lockout settings...")
     if "auth-lockout-threshold: 5" in output and "auth-lockout-duration: 300" in output:

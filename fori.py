@@ -513,41 +513,18 @@ def check_trusted_signed_certificate():
     return "Manual check needed"
     
 def check_auth_lockout_settings(shell):
-    shell.send('config user setting\n')
-    time.sleep(1)
-    shell.send('show\n')
-    time.sleep(1)
-    output_ha_mgmt = execute_commands(shell, ['show'])[0][1]
-    shell.send('end\n')
-    time.sleep(1)
+    print("Executing authentication lockout settings command...")
+    auth_lockout_command = 'end\nconfig user setting\nget | grep -i auth-lock\nend'
+    output = execute_commands(shell, [auth_lockout_command])[0][1]
 
-    if '5' and '300' in output_ha_mgmt:
+    print("Checking authentication lockout settings...")
+    if "auth-lockout-threshold: 5" in output and "auth-lockout-duration: 300" in output:
         print("Authentication lockout settings are correctly configured.")
         return "Compliant"
     else:
-        print("Authentication lockout settings are not configured correctly.")
+        print("Authentication lockout settings are not correctly configured.")
         return "Non-Compliant"
-    
-def check_event_logging(shell):
-    print("Executing event logging status command...")
-    shell.send('end\n')
-    shell.send('config log eventfilter\n')
-    time.sleep(1)  # Allow time for the command to execute
-    shell.send('get\n')
-    time.sleep(1)  # Allow time for the command to execute
-    output_event_logging = shell.recv(65535).decode('utf-8')  # Receive output
-    shell.send('end\n')
-    time.sleep(1)  # Allow time for the command to execute
 
-    print("******************************************************************")
-
-    # Check if 'event : enable' is present in the output
-    if re.search(r'\bevent\s*:\s*enable\b', output_event_logging):
-        print("Event logging is enabled.")
-        return "Compliant"
-    else:
-        print("Event logging is not enabled.")
-        return "Non-Compliant"
 
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -756,12 +733,6 @@ if shell:
     compliance_results.append({
         "control_objective": "Configuring the maximum login attempts and lockout period",
         "compliance_status": auth_lockout_compliance
-    })
-
-    event_logging_compliance = check_event_logging(shell)
-    compliance_results.append({
-        "control_objective": "Enable Event Logging",
-        "compliance_status": event_logging_compliance
     })
 
     write_to_csv(compliance_results)

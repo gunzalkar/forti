@@ -519,7 +519,6 @@ def check_auth_lockout_settings(shell):
     time.sleep(1)
     shell.send('end\n')
     time.sleep(1)
-    print("*"*50)
     print(outt)
     
     # Check if the exact 'allowaccess' configuration line exists

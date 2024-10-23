@@ -47,45 +47,49 @@ def connect_to_fortigate(hostname, username, password):
 
 import re
 
-import re
-
 def check_antivirus_updates(shell):
-    print("Executing antivirus update commands...")
+    print("Checking Antivirus Definition Push Updates...")
 
-    # Step 1: Run 'config system autoupdate schedule', then 'show', and 'end'
+    # Step 1: Execute 'config system autoupdate schedule'
     schedule_command = 'config system autoupdate schedule'
-    show_schedule_command = 'show'
-    end_command = 'end'
-
-    # Execute the commands one by one
     execute_commands(shell, [schedule_command])
+
+    # Step 2: Show the configuration and capture the output
+    show_schedule_command = 'show'
     schedule_output = execute_commands(shell, [show_schedule_command])[0][1]
-    execute_commands(shell, [end_command])
     print("****************************************")
-    print("Schedule Output:")
     print(schedule_output)
 
-    # Step 2: Run 'config system autoupdate tunneling', then 'show', and 'end'
+    # Step 3: Exit the config mode for schedule
+    exit_command = 'end'
+    execute_commands(shell, [exit_command])
+
+    # Step 4: Execute 'config system autoupdate tunneling'
     tunneling_command = 'config system autoupdate tunneling'
-
-    # Execute the commands one by one
     execute_commands(shell, [tunneling_command])
-    tunneling_output = execute_commands(shell, [show_schedule_command])[0][1]
-    execute_commands(shell, [end_command])
-    print("****************************************")
-    print("Tunneling Output:")
-    print(tunneling_output)
-    
-    # Pattern to check for 'set status enable' with flexible spacing
-    status_pattern = r"set\s+status\s+enable"
 
-    # Step 3: Check if 'set status enable' is found in both outputs
-    if re.search(status_pattern, schedule_output, re.IGNORECASE) and re.search(status_pattern, tunneling_output, re.IGNORECASE):
-        print("Antivirus definition push updates are configured correctly.")
+    # Step 5: Show the configuration for tunneling and capture the output
+    show_tunneling_command = 'show'
+    tunneling_output = execute_commands(shell, [show_tunneling_command])[0][1]
+    print("****************************************")
+    print(tunneling_output)
+
+    # Step 6: Exit the config mode for tunneling
+    execute_commands(shell, [exit_command])
+
+    print("Checking if Antivirus Definition Push Updates are configured...")
+
+    # Regex pattern to check for 'set status enable' in both outputs
+    status_pattern = r"\bset status enable\b"
+
+    # Check if 'set status enable' exists in either output
+    if re.search(status_pattern, schedule_output, re.IGNORECASE) or re.search(status_pattern, tunneling_output, re.IGNORECASE):
+        print("Antivirus Definition Push Updates are configured.")
         return "Compliant"
     else:
-        print("Antivirus definition push updates are not configured correctly.")
+        print("Antivirus Definition Push Updates are not configured.")
         return "Non-Compliant"
+
 
 
 
@@ -111,13 +115,11 @@ if shell:
 
     # Example usage to add to the compliance results
 
-    # Example usage to add to the compliance results
-    antivirus_compliance = check_antivirus_updates(shell)
+    antivirus_updates_compliance = check_antivirus_updates(shell)
     compliance_results.append({
         "control_objective": "Ensure Antivirus Definition Push Updates are Configured",
-        "compliance_status": antivirus_compliance
+        "compliance_status": antivirus_updates_compliance
     })
-
 
 
 

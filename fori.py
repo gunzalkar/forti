@@ -47,16 +47,18 @@ def connect_to_fortigate(hostname, username, password):
 
 import re
 
-def check_event_logging(shell):
-    print("Executing event logging command...")
+import re
 
-    # Step 1: Enter 'config log eventfilter'
-    enter_command = 'config log eventfilter'
+def check_fortianalyzer_encryption(shell):
+    print("Executing FortiAnalyzer encryption command...")
+
+    # Step 1: Enter 'config log fortianalyzer setting'
+    enter_command = 'config log fortianalyzer setting'
     execute_commands(shell, [enter_command])
 
-    # Step 2: Execute 'get | grep -i event'
-    event_command = 'get | grep -i event'
-    output = execute_commands(shell, [event_command])[0][1]
+    # Step 2: Execute 'get | grep -i enc'
+    enc_command = 'get | grep -i enc'
+    output = execute_commands(shell, [enc_command])[0][1]
     print("****************************************")
     print(output)
     
@@ -64,18 +66,19 @@ def check_event_logging(shell):
     exit_command = 'end'
     execute_commands(shell, [exit_command])
 
-    print("Checking event logging settings...")
+    print("Checking FortiAnalyzer encryption settings...")
 
-    # Use regex to check for the word 'enable' with varying spaces
-    event_logging_pattern = r"\benable\b"
+    # Use regex to check for the word 'high' with varying spaces
+    encryption_pattern = r"\bhigh\b"
 
-    # Check if the word 'enable' exists in the output
-    if re.search(event_logging_pattern, output, re.IGNORECASE):
-        print("Event logging is enabled.")
+    # Check if the word 'high' exists in the output
+    if re.search(encryption_pattern, output, re.IGNORECASE):
+        print("FortiAnalyzer encryption is set to high.")
         return "Compliant"
     else:
-        print("Event logging is not enabled.")
+        print("FortiAnalyzer encryption is not set to high.")
         return "Non-Compliant"
+
 
 
 
@@ -96,11 +99,11 @@ shell = connect_to_fortigate(hostname, username, password)
 if shell:
     compliance_results = []
 
-# Example usage to add to the compliance results
-    event_logging_compliance = check_event_logging(shell)
+    # Example usage to add to the compliance results
+    fortianalyzer_encryption_compliance = check_fortianalyzer_encryption(shell)
     compliance_results.append({
-        "control_objective": "Enable Event Logging",
-        "compliance_status": event_logging_compliance
+        "control_objective": "Encrypt Log Transmission to FortiAnalyzer / FortiManager",
+        "compliance_status": fortianalyzer_encryption_compliance
     })
 
 

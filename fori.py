@@ -15,13 +15,13 @@ def execute_commands(shell, commands):
         results.append((command, output))
     return results
 
-def connect_to_fortigate(hostname, username, password):
+def connect_to_fortigate(hostname, username, password, port=22):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     try:
         print("Attempting to connect to the FortiGate device...")
-        client.connect(hostname, username=username, password=password)
+        client.connect(hostname, port=port, username=username, password=password)
         print("SSH connection successful.")
         
         # Create an interactive shell
@@ -233,28 +233,6 @@ def check_admin_lockout(shell):
         return "Compliant"
     else:
         print("Administrator password retries and/or lockout time are not properly configured.")
-        return "Non-Compliant"
-
-def check_snmp_agent(shell):
-    print("Configuring SNMP sysinfo...")
-    shell.send('end\n')
-    shell.send('config system snmp sysinfo\n')
-    time.sleep(1)  # Wait for command to execute
-
-    print("Executing command to check SNMP status...")
-    status_command = 'show full | grep -i status'
-    output = execute_commands(shell, [status_command])[0][1]
-
-    # Send the 'end' command to exit the configuration mode
-    shell.send('end\n')
-    time.sleep(1)  # Wait for command to execute
-
-    print("Checking SNMP agent status...")
-    if 'disable' in output.lower():
-        print("SNMP agent is disabled.")
-        return "Compliant"
-    else:
-        print("SNMP agent is not disabled.")
         return "Non-Compliant"
 
 def check_snmpv3_only(shell):
@@ -651,8 +629,9 @@ username = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
 timezone = os.getenv('TIMEZONE')
 host_name = os.getenv('HOST_NAME')
+ssh_port = os.getenv('PORT')
 
-shell = connect_to_fortigate(hostname, username, password)
+shell = connect_to_fortigate(hostname, username, password,port=ssh_port)
 
 if shell:
     compliance_results = []
@@ -733,12 +712,6 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure administrator password retries and lockout time are configured",
         "compliance_status": admin_lockout_compliance
-    })
-
-    snmp_agent_compliance = check_snmp_agent(shell)
-    compliance_results.append({
-        "control_objective": "Ensure SNMP agent is disabled",
-        "compliance_status": snmp_agent_compliance
     })
 
     snmpv3_compliance = check_snmpv3_only(shell)

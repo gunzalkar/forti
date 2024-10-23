@@ -1,4 +1,4 @@
-import paramiko
+import paramiko # type: ignore
 import re
 import csv
 import time
@@ -49,35 +49,53 @@ import re
 
 import re
 
-def check_fortianalyzer_encryption(shell):
-    print("Executing FortiAnalyzer encryption command...")
+def check_centralized_logging(shell):
+    print("Checking Centralized Logging and Reporting...")
 
-    # Step 1: Enter 'config log fortianalyzer setting'
-    enter_command = 'config log fortianalyzer setting'
-    execute_commands(shell, [enter_command])
+    # Step 1: Execute 'get log setting'
+    log_setting_command = 'get log setting'
+    output_log_setting = execute_commands(shell, [log_setting_command])[0][1]
+    print("Log Setting Output:")
+    print(output_log_setting)
 
-    # Step 2: Execute 'get | grep -i enc'
-    enc_command = 'get | grep -i enc'
-    output = execute_commands(shell, [enc_command])[0][1]
-    print("****************************************")
-    print(output)
-    
-    # Step 3: Exit the config mode using 'end'
-    exit_command = 'end'
-    execute_commands(shell, [exit_command])
-
-    print("Checking FortiAnalyzer encryption settings...")
-
-    # Use regex to check for the word 'high' with varying spaces
-    encryption_pattern = r"\bhigh\b"
-
-    # Check if the word 'high' exists in the output
-    if re.search(encryption_pattern, output, re.IGNORECASE):
-        print("FortiAnalyzer encryption is set to high.")
-        return "Compliant"
-    else:
-        print("FortiAnalyzer encryption is not set to high.")
+    # Check for the word 'disable' in 'get log setting'
+    if re.search(r"\bdisable\b", output_log_setting, re.IGNORECASE):
+        print("Log setting contains 'disable'.")
         return "Non-Compliant"
+    else:
+        print("Log setting does not contain 'disable'.")
+
+    # Step 2: Execute 'get log syslogd setting'
+    log_syslogd_command = 'get log syslogd setting'
+    output_log_syslogd = execute_commands(shell, [log_syslogd_command])[0][1]
+    print("Syslogd Setting Output:")
+    print(output_log_syslogd)
+
+    # Check if 'status: enable' is present in 'get log syslogd setting'
+    if re.search(r"status\s*:\s*enable", output_log_syslogd, re.IGNORECASE):
+        print("Syslogd status is enabled.")
+    else:
+        print("Syslogd status is not enabled.")
+        return "Non-Compliant"
+
+    # Step 3: Execute 'get log fortianalyzer setting'
+    log_fortianalyzer_command = 'get log fortianalyzer setting'
+    output_log_fortianalyzer = execute_commands(shell, [log_fortianalyzer_command])[0][1]
+    print("FortiAnalyzer Setting Output:")
+    print(output_log_fortianalyzer)
+
+    # Check if 'status: enable' is present in 'get log fortianalyzer setting'
+    if re.search(r"status\s*:\s*enable", output_log_fortianalyzer, re.IGNORECASE):
+        print("FortiAnalyzer status is enabled.")
+    else:
+        print("FortiAnalyzer status is not enabled.")
+        return "Non-Compliant"
+
+    # If all conditions are met, the check is compliant
+    print("Centralized Logging and Reporting is compliant.")
+    return "Compliant"
+
+
 
 
 
@@ -100,11 +118,12 @@ if shell:
     compliance_results = []
 
     # Example usage to add to the compliance results
-    fortianalyzer_encryption_compliance = check_fortianalyzer_encryption(shell)
+    centralized_logging_compliance = check_centralized_logging(shell)
     compliance_results.append({
-        "control_objective": "Encrypt Log Transmission to FortiAnalyzer / FortiManager",
-        "compliance_status": fortianalyzer_encryption_compliance
+        "control_objective": "Centralized Logging and Reporting",
+        "compliance_status": centralized_logging_compliance
     })
+
 
 
 

@@ -97,11 +97,6 @@ shell = connect_to_fortigate(hostname, username, password)
 if shell:
     compliance_results = []
 
-    # Example usage to add to the compliance results
-import re
-
-
-
 # Example usage to add to the compliance results
     auth_lock_compliance = check_auth_lock_settings(shell)
     compliance_results.append({

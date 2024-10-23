@@ -3,6 +3,9 @@ import re
 import csv
 import time
 import re
+from dotenv import load_dotenv
+import os
+
 def execute_commands(shell, commands):
     results = []
     for command in commands:
@@ -46,8 +49,6 @@ def check_dns_settings(shell):
     print("Executing DNS command...")
     dns_command = 'get system dns'
     output = execute_commands(shell, [dns_command])[0][1]
-    print("****************************************")
-    print(output)
     
     print("Checking DNS settings...")
     dns_settings = {
@@ -636,11 +637,14 @@ def write_to_csv(compliance_results):
         for index, result in enumerate(compliance_results, start=1):
             writer.writerow([index, result['control_objective'], result['compliance_status']])
 
-hostname = '192.168.1.1'
-username = 'admin'
-password = 'password@Gat1'
-timezone = rf"Asia/Kolkata"
-host_name = "New_FGT1"
+load_dotenv()
+
+hostname = os.getenv('HOSTNAME')
+username = os.getenv('USERNAME')
+password = os.getenv('PASSWORD')
+timezone = os.getenv('TIMEZONE')
+host_name = os.getenv('HOST_NAME')
+
 shell = connect_to_fortigate(hostname, username, password)
 
 if shell:

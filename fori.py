@@ -518,6 +518,8 @@ def check_auth_lockout_settings(shell):
         'auth-lockout-threshold': '5',
         'auth-lockout-duration': '300'
     }
+    print("*"*50)
+    print(output)
 
     for key, value in required_settings.items():
         pattern = fr"{key}:\s*{value}"

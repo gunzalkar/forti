@@ -47,16 +47,16 @@ def connect_to_fortigate(hostname, username, password):
 
 import re
 
-def check_auth_lock_settings(shell):
-    print("Executing auth-lockout command...")
-    
-    # Step 1: Enter 'config user setting'
-    enter_command = 'config user setting'
+def check_event_logging(shell):
+    print("Executing event logging command...")
+
+    # Step 1: Enter 'config log eventfilter'
+    enter_command = 'config log eventfilter'
     execute_commands(shell, [enter_command])
 
-    # Step 2: Execute 'get | grep -i auth-lock'
-    auth_lock_command = 'get | grep -i auth-lock'
-    output = execute_commands(shell, [auth_lock_command])[0][1]
+    # Step 2: Execute 'get | grep -i event'
+    event_command = 'get | grep -i event'
+    output = execute_commands(shell, [event_command])[0][1]
     print("****************************************")
     print(output)
     
@@ -64,18 +64,17 @@ def check_auth_lock_settings(shell):
     exit_command = 'end'
     execute_commands(shell, [exit_command])
 
-    print("Checking auth-lockout settings...")
-    
-    # Use regex to check for auth-lockout-threshold and auth-lockout-duration with varying spaces
-    threshold_pattern = r"auth-lockout-threshold\s*:\s*5"
-    duration_pattern = r"auth-lockout-duration\s*:\s*300"
+    print("Checking event logging settings...")
 
-    # Check if both patterns exist in the output
-    if re.search(threshold_pattern, output) and re.search(duration_pattern, output):
-        print("Auth-lockout settings are correct.")
+    # Use regex to check for the word 'enable' with varying spaces
+    event_logging_pattern = r"\benable\b"
+
+    # Check if the word 'enable' exists in the output
+    if re.search(event_logging_pattern, output, re.IGNORECASE):
+        print("Event logging is enabled.")
         return "Compliant"
     else:
-        print("Auth-lockout settings mismatch: Expected threshold and duration.")
+        print("Event logging is not enabled.")
         return "Non-Compliant"
 
 
@@ -98,10 +97,10 @@ if shell:
     compliance_results = []
 
 # Example usage to add to the compliance results
-    auth_lock_compliance = check_auth_lock_settings(shell)
+    event_logging_compliance = check_event_logging(shell)
     compliance_results.append({
-        "control_objective": "Configuring the maximum login attempts and lockout period",
-        "compliance_status": auth_lock_compliance
+        "control_objective": "Enable Event Logging",
+        "compliance_status": event_logging_compliance
     })
 
 

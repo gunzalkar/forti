@@ -49,51 +49,43 @@ import re
 
 import re
 
-def check_centralized_logging(shell):
-    print("Checking Centralized Logging and Reporting...")
+def check_antivirus_updates(shell):
+    print("Executing antivirus update commands...")
 
-    # Step 1: Execute 'get log setting'
-    log_setting_command = 'get log setting'
-    output_log_setting = execute_commands(shell, [log_setting_command])[0][1]
-    print("Log Setting Output:")
-    print(output_log_setting)
+    # Step 1: Run 'config system autoupdate schedule', then 'show', and 'end'
+    schedule_command = 'config system autoupdate schedule'
+    show_schedule_command = 'show'
+    end_command = 'end'
 
-    # Check for the word 'disable' in 'get log setting'
-    if re.search(r"\bdisable\b", output_log_setting, re.IGNORECASE):
-        print("Log setting contains 'disable'.")
-        return "Non-Compliant"
+    # Execute the commands one by one
+    execute_commands(shell, [schedule_command])
+    schedule_output = execute_commands(shell, [show_schedule_command])[0][1]
+    execute_commands(shell, [end_command])
+    print("****************************************")
+    print("Schedule Output:")
+    print(schedule_output)
+
+    # Step 2: Run 'config system autoupdate tunneling', then 'show', and 'end'
+    tunneling_command = 'config system autoupdate tunneling'
+
+    # Execute the commands one by one
+    execute_commands(shell, [tunneling_command])
+    tunneling_output = execute_commands(shell, [show_schedule_command])[0][1]
+    execute_commands(shell, [end_command])
+    print("****************************************")
+    print("Tunneling Output:")
+    print(tunneling_output)
+    
+    # Pattern to check for 'set status enable' with flexible spacing
+    status_pattern = r"set\s+status\s+enable"
+
+    # Step 3: Check if 'set status enable' is found in both outputs
+    if re.search(status_pattern, schedule_output, re.IGNORECASE) and re.search(status_pattern, tunneling_output, re.IGNORECASE):
+        print("Antivirus definition push updates are configured correctly.")
+        return "Compliant"
     else:
-        print("Log setting does not contain 'disable'.")
-
-    # Step 2: Execute 'get log syslogd setting'
-    log_syslogd_command = 'get log syslogd setting'
-    output_log_syslogd = execute_commands(shell, [log_syslogd_command])[0][1]
-    print("Syslogd Setting Output:")
-    print(output_log_syslogd)
-
-    # Check if 'status: enable' is present in 'get log syslogd setting'
-    if re.search(r"status\s*:\s*enable", output_log_syslogd, re.IGNORECASE):
-        print("Syslogd status is enabled.")
-    else:
-        print("Syslogd status is not enabled.")
+        print("Antivirus definition push updates are not configured correctly.")
         return "Non-Compliant"
-
-    # Step 3: Execute 'get log fortianalyzer setting'
-    log_fortianalyzer_command = 'get log fortianalyzer setting'
-    output_log_fortianalyzer = execute_commands(shell, [log_fortianalyzer_command])[0][1]
-    print("FortiAnalyzer Setting Output:")
-    print(output_log_fortianalyzer)
-
-    # Check if 'status: enable' is present in 'get log fortianalyzer setting'
-    if re.search(r"status\s*:\s*enable", output_log_fortianalyzer, re.IGNORECASE):
-        print("FortiAnalyzer status is enabled.")
-    else:
-        print("FortiAnalyzer status is not enabled.")
-        return "Non-Compliant"
-
-    # If all conditions are met, the check is compliant
-    print("Centralized Logging and Reporting is compliant.")
-    return "Compliant"
 
 
 
@@ -118,11 +110,14 @@ if shell:
     compliance_results = []
 
     # Example usage to add to the compliance results
-    centralized_logging_compliance = check_centralized_logging(shell)
+
+    # Example usage to add to the compliance results
+    antivirus_compliance = check_antivirus_updates(shell)
     compliance_results.append({
-        "control_objective": "Centralized Logging and Reporting",
-        "compliance_status": centralized_logging_compliance
+        "control_objective": "Ensure Antivirus Definition Push Updates are Configured",
+        "compliance_status": antivirus_compliance
     })
+
 
 
 

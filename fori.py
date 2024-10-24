@@ -106,7 +106,23 @@ def check_trusted_hosts(shell):
     print("No valid trusted hosts configuration found.")
     return "Non-Compliant"
 
-
+def check_admin_timeout(shell):
+    print("Checking admin timeout settings...")
+    timeout_command = 'get system global | grep -i admintimeout'
+    output = execute_commands(shell, [timeout_command])[0][1]
+    
+    # Check for 'admintimeout' value
+    pattern = r'admintimeout\s*:\s*(\d+)'
+    match = re.search(pattern, output)
+    
+    if match:
+        timeout_value = int(match.group(1).strip())
+        if timeout_value != 5:
+            print(f"Admin timeout is set to {timeout_value}. This is non-compliant.")
+            return "Non-Compliant"
+    
+    print("Admin timeout is set to 5. This is compliant.")
+    return "Compliant"
 
 
 
@@ -164,6 +180,13 @@ if shell:
     })
 
 
+
+
+    admin_timeout_compliance = check_admin_timeout(shell)
+    compliance_results.append({
+        "control_objective": "Configure idle session timeout",
+        "compliance_status": admin_timeout_compliance
+    })
 
 
 

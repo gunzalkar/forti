@@ -47,6 +47,46 @@ def check_default_admin_removed(shell):
     print("Default 'admin' account is not found.")
     return "Compliant"
 
+def check_rbac_profiles(shell):
+    print("Manual check needed to limit full administrative rights by creating profiles (RBAC).")
+    return "Manual check needed"
+
+def check_password_policy(shell):
+    print("Checking password policy settings...")
+    password_policy_command = 'get system password-policy'
+    output = execute_commands(shell, [password_policy_command])[0][1]
+
+    required_settings = {
+        'min-length': 8,
+        'min-upper-case-letter': 1,
+        'min-lower-case-letter': 1,
+        'min-number': 1,
+        'min-non-alphanumeric': 1,
+    }
+
+    for key, min_value in required_settings.items():
+        pattern = fr"{key}\s*:\s*(\d+)"
+        match = re.search(pattern, output)
+        if not match:
+            print(f"Password policy setting missing: {key} is not found.")
+            return "Non-Compliant"
+        
+        actual_value = int(match.group(1))
+        
+        # Check for min-length condition separately
+        if key == 'min-length' and actual_value < min_value:
+            print(f"Password policy setting mismatch: {key} should be at least {min_value} but found {actual_value}.")
+            return "Non-Compliant"
+        
+        # Check for other settings to ensure they are not lower than the minimum required values
+        if key != 'min-length' and actual_value < min_value:
+            print(f"Password policy setting mismatch: {key} should be at least {min_value} but found {actual_value}.")
+            return "Non-Compliant"
+
+    print("Strong password rules are enabled.")
+    return "Compliant"
+
+####################################################################################################
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -66,7 +106,7 @@ shell = connect_to_fortiweb(hostname, username, password, port=ssh_port)
 
 if shell:
     compliance_results = []
-
+############################################################################################################
     # Check if the default admin account is removed
     admin_compliance = check_default_admin_removed(shell)
     compliance_results.append({
@@ -74,6 +114,11 @@ if shell:
         "compliance_status": admin_compliance
     })
 
+    rbac_compliance = check_rbac_profiles(shell)
+    compliance_results.append({
+        "control_objective": "Limit full administrative rights by creating profiles (RBAC)",
+        "compliance_status": rbac_compliance
+    })
 
     # Write the results to CSV
     write_to_csv(compliance_results)

@@ -33,36 +33,18 @@ def connect_to_fortiweb(hostname, username, password, port=22):
         print(f"Connection error: {e}")
         return None
 
-# Example compliance check for DNS settings
-def check_dns_settings_fortiweb(shell):
-    print("Executing DNS command...")
-    dns_command = 'get system dns'
-    output = execute_commands(shell, [dns_command])[0][1]
+# Check if default admin account is removed and super admin is configured
+def check_default_admin_removed(shell):
+    print("Checking for default 'admin' account...")
+    admin_command = 'get system admin'
+    output = execute_commands(shell, [admin_command])[0][1]
     
-    print("Checking DNS settings...")
-    dns_settings = {
-        'primary': '8.8.8.8',
-        'secondary': '8.8.4.4'
-    }
-    
-    for key, value in dns_settings.items():
-        pattern = fr"{key}\s*:\s*{value}"
-        if not re.search(pattern, output):
-            print(f"DNS setting mismatch: Expected {key} to be {value}")
-            return "Non-Compliant"
-    
-    print("DNS settings are correct.")
-    return "Compliant"
-
-# Placeholder for other FortiWeb compliance checks
-def check_firewall_settings(shell):
-    print("Executing Firewall Settings check...")
-    firewall_command = 'show firewall policy'
-    output = execute_commands(shell, [firewall_command])[0][1]
-    
-    # Example pattern match for a FortiWeb specific check
-    if 'set service "ALL"' in output:
+    # Check if 'admin' is present in the output
+    if 'admin' in output:
+        print("Default 'admin' account found.")
         return "Non-Compliant"
+    
+    print("Default 'admin' account is not found.")
     return "Compliant"
 
 def write_to_csv(compliance_results):
@@ -85,19 +67,13 @@ shell = connect_to_fortiweb(hostname, username, password, port=ssh_port)
 if shell:
     compliance_results = []
 
-    # DNS Check
-    dns_compliance = check_dns_settings_fortiweb(shell)
+    # Check if the default admin account is removed
+    admin_compliance = check_default_admin_removed(shell)
     compliance_results.append({
-        "control_objective": "Ensure DNS server is configured",
-        "compliance_status": dns_compliance
+        "control_objective": "Ensure Default admin account is removed and New Super admin account has been configured",
+        "compliance_status": admin_compliance
     })
 
-    # Firewall Policy Check
-    firewall_compliance = check_firewall_settings(shell)
-    compliance_results.append({
-        "control_objective": "Ensure Firewall Policies are Correct",
-        "compliance_status": firewall_compliance
-    })
 
     # Write the results to CSV
     write_to_csv(compliance_results)

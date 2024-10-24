@@ -120,6 +120,12 @@ if shell:
         "compliance_status": rbac_compliance
     })
 
+    password_policy_compliance = check_password_policy(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Strong password rules are enabled",
+        "compliance_status": password_policy_compliance
+    })
+    
     # Write the results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

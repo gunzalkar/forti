@@ -124,22 +124,41 @@ def check_admin_timeout(shell):
     print("Admin timeout is set to 5. This is compliant.")
     return "Compliant"
 
-def check_remote_login_security(shell):
-    print("Checking remote login security settings...")
-    interface_command = 'show system interface'
+def check_remote_login_security_port1(shell):
+    print("Checking remote login security settings for port1...")
+    interface_command = 'get system interface'
     output = execute_commands(shell, [interface_command])[0][1]
     
-    # Check for 'allowaccess' settings
+    # Split the output by lines
     lines = output.splitlines()
-    for line in lines:
-        if 'allowaccess:' in line:
-            allowaccess_value = line.split(':')[1].strip()
-            if allowaccess_value and allowaccess_value not in ["ssh https", "https ssh"]:
-                print(f"Allowaccess is set to '{allowaccess_value}'. This is non-compliant.")
-                return "Non-Compliant"
     
-    print("Remote login security is configured correctly with only 'ssh https', 'https ssh', or is blank. This is compliant.")
+    # Track if we're inside the port1 block
+    in_port1 = False
+    
+    for line in lines:
+        if '== [ port1 ]' in line:
+            in_port1 = True
+        elif '==' in line and in_port1:
+            # We've reached another port, so exit the port1 block
+            in_port1 = False
+        
+        # If we're inside the port1 block, check for allowaccess settings
+        if in_port1 and 'allowaccess:' in line:
+            allowaccess_value = line.split(':')[1].strip()
+            # Allowed values for port1
+            allowed_values = ["ssh", "https", "ping"]
+            if allowaccess_value:
+                access_list = allowaccess_value.split()
+                if not all(access in allowed_values for access in access_list):
+                    print(f"Allowaccess for port1 is set to '{allowaccess_value}'. This is non-compliant.")
+                    return "Non-Compliant"
+            else:
+                print("Allowaccess for port1 is blank. This is compliant.")
+                return "Compliant"
+    
+    print("Remote login security for port1 is configured correctly. This is compliant.")
     return "Compliant"
+
 
 
 
@@ -202,17 +221,12 @@ if shell:
         "control_objective": "Configure idle session timeout",
         "compliance_status": admin_timeout_compliance
     })
-
-    remote_login_security_compliance = check_remote_login_security(shell)
+    
+    remote_login_security_compliance = check_remote_login_security_port1(shell)
     compliance_results.append({
-        "control_objective": "Ensure Remote Login Security is enabled",
+        "control_objective": "Ensure Remote Login Security is enabled for port1",
         "compliance_status": remote_login_security_compliance
     })
-
-
-
-
-
 
 
 

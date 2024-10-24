@@ -124,7 +124,22 @@ def check_admin_timeout(shell):
     print("Admin timeout is set to 5. This is compliant.")
     return "Compliant"
 
-
+def check_remote_login_security(shell):
+    print("Checking remote login security settings...")
+    interface_command = 'show system interface'
+    output = execute_commands(shell, [interface_command])[0][1]
+    
+    # Check for 'allowaccess' settings
+    lines = output.splitlines()
+    for line in lines:
+        if 'allowaccess:' in line:
+            allowaccess_value = line.split(':')[1].strip()
+            if allowaccess_value and allowaccess_value not in ["ssh https", "https ssh"]:
+                print(f"Allowaccess is set to '{allowaccess_value}'. This is non-compliant.")
+                return "Non-Compliant"
+    
+    print("Remote login security is configured correctly with only 'ssh https', 'https ssh', or is blank. This is compliant.")
+    return "Compliant"
 
 
 
@@ -188,7 +203,11 @@ if shell:
         "compliance_status": admin_timeout_compliance
     })
 
-
+    remote_login_security_compliance = check_remote_login_security(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Remote Login Security is enabled",
+        "compliance_status": remote_login_security_compliance
+    })
 
 
 

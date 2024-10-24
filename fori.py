@@ -86,6 +86,37 @@ def check_password_policy(shell):
     print("Strong password rules are enabled.")
     return "Compliant"
 
+def check_trusted_hosts(shell):
+    print("Checking trusted hosts settings...")
+    admin_command = 'get system admin'
+    output = execute_commands(shell, [admin_command])[0][1]
+    
+    # Check for 'trusthostv4' line
+    if 'trusthostv4:' in output:
+        # Extract the trusted host value
+        pattern = r'trusthostv4:\s*(.+)'
+        match = re.search(pattern, output)
+        if match:
+            trusted_host = match.group(1).strip()
+            # Check if the trusted host is not blank or set to a wildcard
+            if trusted_host and trusted_host != '::/0':
+                print(f"Trusted host found: {trusted_host}.")
+                return "Compliant"
+    
+    print("No valid trusted hosts configuration found.")
+    return "Non-Compliant"
+
+
+
+
+
+
+
+
+
+
+
+
 ####################################################################################################
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -125,7 +156,29 @@ if shell:
         "control_objective": "Ensure Strong password rules are enabled",
         "compliance_status": password_policy_compliance
     })
-    
+
+    trusted_hosts_compliance = check_trusted_hosts(shell)
+    compliance_results.append({
+        "control_objective": "Ensure no other user except Trusted host can access the firewall",
+        "compliance_status": trusted_hosts_compliance
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Write the results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")

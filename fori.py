@@ -379,6 +379,74 @@ def check_cookie_protection(shell):
     print("Manual check needed to ensure that protection for cookie poisoning is enabled.")
     return "Manual check needed"
 
+def check_false_positives(shell):
+    print("Manual check needed to ensure that measures to reduce false positives are implemented.")
+    return "Manual check needed"
+
+def check_sql_injection_mitigation(shell):
+    print("Manual check needed to ensure that false positive mitigation for SQL Injection signatures is enabled.")
+    return "Manual check needed"
+
+def check_dos_protection(shell):
+    print("Manual check needed to ensure that protection from DoS attacks is enabled.")
+    return "Manual check needed"
+
+def check_ip_reputation(shell):
+    print("Manual check needed to ensure that IP reputation for blacklisting/whitelisting clients is enabled.")
+    return "Manual check needed"
+
+def check_http_https_constraints(shell):
+    print("Manual check needed to ensure that HTTP/HTTPS protocol constraints are enabled.")
+    return "Manual check needed"
+
+def check_machine_learning_enabled(shell):
+    print("Manual check needed to ensure that Machine Learning is enabled (Optional).")
+    return "Manual check needed"
+
+def check_unused_interfaces(shell):
+    print("Manual check needed to ensure that unused interfaces are disabled.")
+    return "Manual check needed"
+
+def check_os_firmware_update(shell):
+    print("Manual check needed to ensure that OS and firmware are updated.")
+    return "Manual check needed"
+
+def check_automatic_signature_updates(shell):
+    print("Manual check needed to ensure that automatic signature updates are enabled.")
+    return "Manual check needed"
+
+def check_restrict_local_policies(shell):
+    print("Manual check needed to ensure that local policies are restricted.")
+    return "Manual check needed"
+
+def check_access_list_explicit_deny(shell):
+    print("Manual check needed to ensure each access-list has an explicit deny statement.")
+    return "Manual check needed"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -542,11 +610,71 @@ if shell:
         "compliance_status": cookie_protection_compliance
     })
 
+    false_positives_compliance = check_false_positives(shell)
+    compliance_results.append({
+        "control_objective": "Reduce false positives",
+        "compliance_status": false_positives_compliance
+    })
 
+    sql_injection_mitigation_compliance = check_sql_injection_mitigation(shell)
+    compliance_results.append({
+        "control_objective": "Enable false Positive Mitigation for SQL Injection signatures",
+        "compliance_status": sql_injection_mitigation_compliance
+    })
 
+    dos_protection_compliance = check_dos_protection(shell)
+    compliance_results.append({
+        "control_objective": "Enable protection from DoS attacks",
+        "compliance_status": dos_protection_compliance
+    })
 
+    ip_reputation_compliance = check_ip_reputation(shell)
+    compliance_results.append({
+        "control_objective": "Enable IP reputation for blacklisting/whitelisting clients",
+        "compliance_status": ip_reputation_compliance
+    })
 
+    http_https_constraints_compliance = check_http_https_constraints(shell)
+    compliance_results.append({
+        "control_objective": "Enable HTTP/HTTPS protocol constraints",
+        "compliance_status": http_https_constraints_compliance
+    })
 
+    machine_learning_compliance = check_machine_learning_enabled(shell)
+    compliance_results.append({
+        "control_objective": "Enable Machine Learning (Optional)",
+        "compliance_status": machine_learning_compliance
+    })
+
+    unused_interfaces_compliance = check_unused_interfaces(shell)
+    compliance_results.append({
+        "control_objective": "Ensure unused interfaces are disabled",
+        "compliance_status": unused_interfaces_compliance
+    })
+
+    os_firmware_update_compliance = check_os_firmware_update(shell)
+    compliance_results.append({
+        "control_objective": "Update OS and firmware",
+        "compliance_status": os_firmware_update_compliance
+    })
+
+    automatic_signature_updates_compliance = check_automatic_signature_updates(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Automatic signature updates are enabled",
+        "compliance_status": automatic_signature_updates_compliance
+    })
+
+    restrict_local_policies_compliance = check_restrict_local_policies(shell)
+    compliance_results.append({
+        "control_objective": "Restrict Local Policies",
+        "compliance_status": restrict_local_policies_compliance
+    })
+
+    access_list_compliance = check_access_list_explicit_deny(shell)
+    compliance_results.append({
+        "control_objective": "Ensure each access-list has an explicit deny statement",
+        "compliance_status": access_list_compliance
+    })
 
 
 

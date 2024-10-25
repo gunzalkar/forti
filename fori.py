@@ -159,69 +159,7 @@ def check_remote_login_security_port1(shell):
     print("Remote login security for port1 is configured correctly. This is compliant.")
     return "Compliant"
 
-def check_remote_access_limited(shell):
-    print("Checking remote access settings for all ports...")
-    interface_command = 'get system interface'
-    output = execute_commands(shell, [interface_command])[0][1]
-    
-    # Split the output by lines
-    lines = output.splitlines()
-    
-    # Track the current port being processed
-    current_port = None
-    allowaccess_found = False
-    
-    for line in lines:
-        # Identify port blocks (assuming they start with '== [ portX ]')
-        if '==' in line:
-            current_port = line.strip()
-            allowaccess_found = False
-        
-        # Check allowaccess settings for each port
-        if 'allowaccess:' in line:
-            allowaccess_value = line.split(':')[1].strip()
-            allowaccess_found = True
 
-            if 'port1' in current_port:
-                # For port1, ensure only ssh, https, and optionally ping are allowed
-                allowed_values = ["ssh", "https", "ping"]
-                if allowaccess_value:
-                    access_list = allowaccess_value.split()
-                    if not all(access in allowed_values for access in access_list):
-                        print(f"{current_port} - Allowaccess is set to '{allowaccess_value}'. This is non-compliant for port1.")
-                        return "Non-Compliant"
-                else:
-                    print(f"{current_port} - Allowaccess is blank. This is compliant for port1.")
-            else:
-                # For other ports, ensure only ping is allowed
-                if allowaccess_value and allowaccess_value != "ping":
-                    print(f"{current_port} - Allowaccess is set to '{allowaccess_value}'. This is non-compliant for non-port1 interfaces.")
-                    return "Non-Compliant"
-                elif not allowaccess_value:
-                    print(f"{current_port} - Allowaccess is blank. This is compliant for non-port1 interfaces.")
-    
-    if not allowaccess_found:
-        print("No allowaccess settings found. Default compliance assumed.")
-    
-    print("Remote access is limited to a single management interface. This is compliant.")
-    return "Compliant"
-
-def check_trusted_hosts_subnet(shell):
-    print("Checking trusted host subnet mask...")
-    trusthost_command = 'get system admin | grep -i trusthostv4'
-    output = execute_commands(shell, [trusthost_command])[0][1]
-    
-    # Find all 'trusthostv4' entries in the output
-    trusthost_entries = re.findall(r'trusthostv4:\s*[\d\.]+/\d+', output)
-
-    for entry in trusthost_entries:
-        # Extract the subnet mask and check if it ends in '/32'
-        if not entry.endswith('/32'):
-            print(f"Non-compliant trusted host entry found: {entry}")
-            return "Non-Compliant"
-    
-    print("All trusted hosts have a 32-bit subnet mask. This is compliant.")
-    return "Compliant"
 
 
 
@@ -290,18 +228,6 @@ if shell:
         "compliance_status": remote_login_security_compliance
     })
 
-    # Checking compliance for all ports
-    remote_access_compliance = check_remote_access_limited(shell)
-    compliance_results.append({
-        "control_objective": "Ensure Remote access to devices is limited to a single management interface",
-        "compliance_status": remote_access_compliance
-    })
-
-    trusted_hosts_compliance = check_trusted_hosts_subnet(shell)
-    compliance_results.append({
-        "control_objective": "Ensure 32-bit subnet mask is used for trusted hosts",
-        "compliance_status": trusted_hosts_compliance
-    })
 
 
 

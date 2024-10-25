@@ -210,12 +210,9 @@ def check_trusted_hosts_subnet(shell):
     print("Checking trusted host subnet mask...")
     trusthost_command = 'get system admin | grep -i trusthostv4'
     output = execute_commands(shell, [trusthost_command])[0][1]
-    
-    # Find all 'trusthostv4' entries in the output
     trusthost_entries = re.findall(r'trusthostv4:\s*[\d\.]+/\d+', output)
 
     for entry in trusthost_entries:
-        # Extract the subnet mask and check if it ends in '/32'
         if not entry.endswith('/32'):
             print(f"Non-compliant trusted host entry found: {entry}")
             return "Non-Compliant"
@@ -227,20 +224,14 @@ def check_admin_lockout_settings(shell):
     print("Checking administrator lockout settings...")
     lockout_command = 'get system global | grep -i admin-lockout'
     output = execute_commands(shell, [lockout_command])[0][1]
-    
-    # Minimum values for compliance
     min_threshold = 3
     min_duration = 300
-    
-    # Extract and check 'admin-lockout-threshold' and 'admin-lockout-duration' values
     threshold_match = re.search(r'admin-lockout-threshold:\s*(\d+)', output)
     duration_match = re.search(r'admin-lockout-duration:\s*(\d+)', output)
     
     if threshold_match and duration_match:
         threshold_value = int(threshold_match.group(1))
         duration_value = int(duration_match.group(1))
-        
-        # Check if values meet or exceed the minimum required for compliance
         if threshold_value >= min_threshold and duration_value >= min_duration:
             print("Admin lockout settings are compliant.")
             return "Compliant"
@@ -255,8 +246,6 @@ def check_pre_login_banner(shell):
     print("Checking if pre-login banner is enabled...")
     banner_command = 'get system global | grep -i banner'
     output = execute_commands(shell, [banner_command])[0][1]
-    
-    # Check if the pre-login banner is set to "enable"
     if re.search(r'pre-login-banner\s*:\s*enable', output, re.IGNORECASE):
         print("Pre-login banner is enabled.")
         return "Compliant"
@@ -270,13 +259,9 @@ def check_maintainer_account(shell):
 
 def check_logging_configuration(shell):
     print("Checking logging configuration...")
-
-    # Check event-log status
     event_log_command = 'get log event-log'
     event_log_output = execute_commands(shell, [event_log_command])[0][1]
     event_log_compliant = re.search(r'status\s*:\s*enable', event_log_output)
-
-    # Check syslogd status and severity
     syslogd_command = 'get log syslogd'
     syslogd_output = execute_commands(shell, [syslogd_command])[0][1]
     syslogd_compliant = (
@@ -284,7 +269,6 @@ def check_logging_configuration(shell):
         re.search(r'severity\s*:\s*warning', syslogd_output)
     )
 
-    # Overall compliance
     if event_log_compliant and syslogd_compliant:
         print("Auditing and logging configuration is compliant.")
         return "Compliant"
@@ -300,8 +284,6 @@ def check_password_ageing(shell):
     print("Checking password expiry settings...")
     password_policy_command = 'get system password-policy'
     output = execute_commands(shell, [password_policy_command])[0][1]
-    
-    # Extract the expire-day value
     pattern = r"expire-day\s*:\s*(\d+)"
     match = re.search(pattern, output)
     
@@ -316,6 +298,35 @@ def check_password_ageing(shell):
     print("Expire day setting not found.")
     return "Non-Compliant"
 
+def check_logging_configuration(shell):
+    print("Checking logging configurations...")
+
+    # Check attack-log status
+    attack_log_command = 'get log attack-log | grep -i status'
+    attack_log_output = execute_commands(shell, [attack_log_command])[0][1]
+
+    # Check event-log status
+    event_log_command = 'get log event-log | grep -i status'
+    event_log_output = execute_commands(shell, [event_log_command])[0][1]
+
+    # Define compliant status variable
+    compliant = True
+
+    # Check attack-log status
+    if 'status\s*:\s*enable' not in attack_log_output:
+        print("Attack log is not enabled.")
+        compliant = False
+
+    # Check event-log status
+    if 'status\s*:\s*enable' not in event_log_output:
+        print("Event log is not enabled.")
+        compliant = False
+
+    if compliant:
+        print("Logging configurations are compliant.")
+        return "Compliant"
+    else:
+        return "Non-Compliant"
 
 
 
@@ -435,6 +446,14 @@ if shell:
         "control_objective": "Configure Password Ageing",
         "compliance_status": password_ageing_compliance
     })
+
+    logging_compliance = check_logging_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Configure logging on FortiWeb",
+        "compliance_status": logging_compliance
+    })
+
+
 
     # Write the results to CSV
     write_to_csv(compliance_results)

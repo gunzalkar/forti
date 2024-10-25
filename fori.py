@@ -206,6 +206,22 @@ def check_remote_access_limited(shell):
     print("Remote access is limited to a single management interface. This is compliant.")
     return "Compliant"
 
+def check_trusted_hosts_subnet(shell):
+    print("Checking trusted host subnet mask...")
+    trusthost_command = 'get system admin | grep -i trusthostv4'
+    output = execute_commands(shell, [trusthost_command])[0][1]
+    
+    # Find all 'trusthostv4' entries in the output
+    trusthost_entries = re.findall(r'trusthostv4:\s*[\d\.]+/\d+', output)
+
+    for entry in trusthost_entries:
+        # Extract the subnet mask and check if it ends in '/32'
+        if not entry.endswith('/32'):
+            print(f"Non-compliant trusted host entry found: {entry}")
+            return "Non-Compliant"
+    
+    print("All trusted hosts have a 32-bit subnet mask. This is compliant.")
+    return "Compliant"
 
 
 
@@ -279,6 +295,12 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure Remote access to devices is limited to a single management interface",
         "compliance_status": remote_access_compliance
+    })
+
+    trusted_hosts_compliance = check_trusted_hosts_subnet(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 32-bit subnet mask is used for trusted hosts",
+        "compliance_status": trusted_hosts_compliance
     })
 
 

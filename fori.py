@@ -250,6 +250,20 @@ def check_admin_lockout_settings(shell):
     else:
         print("Required admin lockout settings not found.")
         return "Non-Compliant"
+    
+def check_pre_login_banner(shell):
+    print("Checking if pre-login banner is enabled...")
+    banner_command = 'get system global | grep -i banner'
+    output = execute_commands(shell, [banner_command])[0][1]
+    
+    # Check if the pre-login banner is set to "enable"
+    if re.search(r'pre-login-banner\s*:\s*enable', output, re.IGNORECASE):
+        print("Pre-login banner is enabled.")
+        return "Compliant"
+    else:
+        print("Pre-login banner is not enabled.")
+        return "Non-Compliant"
+
 
 
 
@@ -339,6 +353,16 @@ if shell:
         "control_objective": "Modify administrator account lockout duration and threshold values",
         "compliance_status": admin_lockout_compliance
     })
+
+    banner_compliance = check_pre_login_banner(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Banner is setup on admin accounts",
+        "compliance_status": banner_compliance
+    })
+
+
+
+
 
 
 

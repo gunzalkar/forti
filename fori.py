@@ -264,6 +264,34 @@ def check_pre_login_banner(shell):
         print("Pre-login banner is not enabled.")
         return "Non-Compliant"
 
+def check_maintainer_account(shell):
+    print("Manual check needed to ensure that the Maintainer account is disabled.")
+    return "Manual check needed"
+
+def check_logging_configuration(shell):
+    print("Checking logging configuration...")
+
+    # Check event-log status
+    event_log_command = 'get log event-log'
+    event_log_output = execute_commands(shell, [event_log_command])[0][1]
+    event_log_compliant = re.search(r'status\s*:\s*enable', event_log_output)
+
+    # Check syslogd status and severity
+    syslogd_command = 'get log syslogd'
+    syslogd_output = execute_commands(shell, [syslogd_command])[0][1]
+    syslogd_compliant = (
+        re.search(r'status\s*:\s*enable', syslogd_output) and 
+        re.search(r'severity\s*:\s*warning', syslogd_output)
+    )
+
+    # Overall compliance
+    if event_log_compliant and syslogd_compliant:
+        print("Auditing and logging configuration is compliant.")
+        return "Compliant"
+    else:
+        print("Auditing and logging configuration is non-compliant.")
+        return "Non-Compliant"
+
 
 
 
@@ -360,7 +388,17 @@ if shell:
         "compliance_status": banner_compliance
     })
 
+    maintainer_compliance = check_maintainer_account(shell)
+    compliance_results.append({
+        "control_objective": "Disable Maintainer Account",
+        "compliance_status": maintainer_compliance
+    })
 
+    logging_compliance = check_logging_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Make sure auditing and logging is configured",
+        "compliance_status": logging_compliance
+    })
 
 
 

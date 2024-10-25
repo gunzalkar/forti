@@ -359,6 +359,13 @@ def check_email_alert_severity(shell):
     print("Email alert severity is not set to 'alert'.")
     return "Non-Compliant"
 
+def check_html_input_sanitization(shell):
+    print("Manual check needed to ensure that HTML application inputs are properly sanitized.")
+    return "Manual check needed"
+
+def check_http_methods(shell):
+    print("Manual check needed to ensure that only specific HTTP methods (GET and POST) are allowed.")
+    return "Manual check needed"
 
 
 
@@ -497,6 +504,18 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure Trigger is configured to send alert email",
         "compliance_status": alert_severity_compliance
+    })
+
+    html_input_sanitization_compliance = check_html_input_sanitization(shell)
+    compliance_results.append({
+        "control_objective": "Ensure HTML application inputs are sanitized",
+        "compliance_status": html_input_sanitization_compliance
+    })
+
+    http_methods_compliance = check_http_methods(shell)
+    compliance_results.append({
+        "control_objective": "Ensure only specific HTTP methods are allowed (if and only GET and POST are allowed)",
+        "compliance_status": http_methods_compliance
     })
 
 

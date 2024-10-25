@@ -292,6 +292,31 @@ def check_logging_configuration(shell):
         print("Auditing and logging configuration is non-compliant.")
         return "Non-Compliant"
 
+def check_ntp_synchronization(shell):
+    print("Manual check needed to ensure system time is synchronizing with NTP Server.")
+    return "Manual check needed"
+
+def check_password_ageing(shell):
+    print("Checking password expiry settings...")
+    password_policy_command = 'get system password-policy'
+    output = execute_commands(shell, [password_policy_command])[0][1]
+    
+    # Extract the expire-day value
+    pattern = r"expire-day\s*:\s*(\d+)"
+    match = re.search(pattern, output)
+    
+    if match:
+        expire_day = int(match.group(1))
+        if expire_day > 90:
+            print("Password expiry is greater than 90 days.")
+            return "Non-Compliant"
+        print("Password expiry settings are compliant.")
+        return "Compliant"
+    
+    print("Expire day setting not found.")
+    return "Non-Compliant"
+
+
 
 
 
@@ -326,7 +351,7 @@ shell = connect_to_fortiweb(hostname, username, password, port=ssh_port)
 if shell:
     compliance_results = []
 ############################################################################################################
-    # Check if the default admin account is removed
+
     admin_compliance = check_default_admin_removed(shell)
     compliance_results.append({
         "control_objective": "Ensure Default admin account is removed and New Super admin account has been configured",
@@ -363,7 +388,6 @@ if shell:
         "compliance_status": remote_login_security_compliance
     })
 
-    # Checking compliance for all ports
     remote_access_compliance = check_remote_access_limited(shell)
     compliance_results.append({
         "control_objective": "Ensure Remote access to devices is limited to a single management interface",
@@ -400,9 +424,17 @@ if shell:
         "compliance_status": logging_compliance
     })
 
+    ntp_compliance = check_ntp_synchronization(shell)
+    compliance_results.append({
+        "control_objective": "Ensure System time is synchronizing with NTP Server",
+        "compliance_status": ntp_compliance
+    })
 
-
-
+    password_ageing_compliance = check_password_ageing(shell)
+    compliance_results.append({
+        "control_objective": "Configure Password Ageing",
+        "compliance_status": password_ageing_compliance
+    })
 
     # Write the results to CSV
     write_to_csv(compliance_results)

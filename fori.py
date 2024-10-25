@@ -347,6 +347,18 @@ def check_alert_email_configuration(shell):
         print("Missing 'mailfrom' or 'mailto' settings.")
         return "Non-Compliant"
 
+def check_email_alert_severity(shell):
+    print("Checking email policy severity configuration...")
+    email_command = 'show log email-policy | grep -i severity'
+    output = execute_commands(shell, [email_command])[0][1]
+    
+    if 'set severity alert' in output:
+        print("Email alert severity is set to 'alert'.")
+        return "Compliant"
+    
+    print("Email alert severity is not set to 'alert'.")
+    return "Non-Compliant"
+
 
 
 
@@ -481,6 +493,11 @@ if shell:
         "compliance_status": email_compliance
     })
 
+    alert_severity_compliance = check_email_alert_severity(shell)
+    compliance_results.append({
+        "control_objective": "Ensure Trigger is configured to send alert email",
+        "compliance_status": alert_severity_compliance
+    })
 
 
     # Write the results to CSV

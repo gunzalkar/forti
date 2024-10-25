@@ -304,11 +304,11 @@ def check_logging_configuration(shell):
     # Check attack-log status
     attack_log_command = 'get log attack-log | grep -i status'
     attack_log_output = execute_commands(shell, [attack_log_command])[0][1]
-
+    print(attack_log_output)
     # Check event-log status
     event_log_command = 'get log event-log | grep -i status'
     event_log_output = execute_commands(shell, [event_log_command])[0][1]
-
+    print(event_log_output)
     # Define compliant status variable
     compliant = True
 

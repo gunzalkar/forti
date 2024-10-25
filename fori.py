@@ -223,6 +223,37 @@ def check_trusted_hosts_subnet(shell):
     print("All trusted hosts have a 32-bit subnet mask. This is compliant.")
     return "Compliant"
 
+def check_admin_lockout_settings(shell):
+    print("Checking administrator lockout settings...")
+    lockout_command = 'get system global | grep -i admin-lockout'
+    output = execute_commands(shell, [lockout_command])[0][1]
+    
+    # Minimum values for compliance
+    min_threshold = 3
+    min_duration = 300
+    
+    # Extract and check 'admin-lockout-threshold' and 'admin-lockout-duration' values
+    threshold_match = re.search(r'admin-lockout-threshold:\s*(\d+)', output)
+    duration_match = re.search(r'admin-lockout-duration:\s*(\d+)', output)
+    
+    if threshold_match and duration_match:
+        threshold_value = int(threshold_match.group(1))
+        duration_value = int(duration_match.group(1))
+        
+        # Check if values meet or exceed the minimum required for compliance
+        if threshold_value >= min_threshold and duration_value >= min_duration:
+            print("Admin lockout settings are compliant.")
+            return "Compliant"
+        else:
+            print("Admin lockout settings are below the required threshold or duration.")
+            return "Non-Compliant"
+    else:
+        print("Required admin lockout settings not found.")
+        return "Non-Compliant"
+
+
+
+
 
 
 
@@ -303,7 +334,11 @@ if shell:
         "compliance_status": trusted_hosts_compliance
     })
 
-
+    admin_lockout_compliance = check_admin_lockout_settings(shell)
+    compliance_results.append({
+        "control_objective": "Modify administrator account lockout duration and threshold values",
+        "compliance_status": admin_lockout_compliance
+    })
 
 
 

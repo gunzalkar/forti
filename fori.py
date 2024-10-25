@@ -367,11 +367,17 @@ def check_http_methods(shell):
     print("Manual check needed to ensure that only specific HTTP methods (GET and POST) are allowed.")
     return "Manual check needed"
 
+def check_https_redirection(shell):
+    print("Manual check needed to ensure clients are redirected to HTTPS connections forcefully.")
+    return "Manual check needed"
 
+def check_waf_protection(shell):
+    print("Manual check needed to ensure that WAF is protecting against known attacks and data leaks.")
+    return "Manual check needed"
 
-
-
-
+def check_cookie_protection(shell):
+    print("Manual check needed to ensure that protection for cookie poisoning is enabled.")
+    return "Manual check needed"
 
 
 
@@ -517,6 +523,34 @@ if shell:
         "control_objective": "Ensure only specific HTTP methods are allowed (if and only GET and POST are allowed)",
         "compliance_status": http_methods_compliance
     })
+
+    https_redirection_compliance = check_https_redirection(shell)
+    compliance_results.append({
+        "control_objective": "Redirect the client to HTTPS connection forcefully",
+        "compliance_status": https_redirection_compliance
+    })
+
+    waf_protection_compliance = check_waf_protection(shell)
+    compliance_results.append({
+        "control_objective": "Ensure that WAF is protecting against Known Attacks and data leaks",
+        "compliance_status": waf_protection_compliance
+    })
+
+    cookie_protection_compliance = check_cookie_protection(shell)
+    compliance_results.append({
+        "control_objective": "Ensure protection for cookies poisoning is enabled",
+        "compliance_status": cookie_protection_compliance
+    })
+
+
+
+
+
+
+
+
+
+
 
 
     # Write the results to CSV

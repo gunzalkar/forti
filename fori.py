@@ -423,6 +423,10 @@ def check_access_list_explicit_deny(shell):
     print("Manual check needed to ensure each access-list has an explicit deny statement.")
     return "Manual check needed"
 
+def check_domain_name():
+    print("Manual check needed: Verify that the domain name is set for the firewall.")
+    return "Manual check needed"
+
 def check_hostname_set(shell):
     print("Checking if hostname is configured...")
     command = 'get system global | grep -i hostname'
@@ -689,11 +693,22 @@ if shell:
         "compliance_status": access_list_compliance
     })
 
+    domain_name_compliance = check_domain_name()
+    compliance_results.append({
+        "control_objective": "Set Domain name of Firewall",
+        "compliance_status": domain_name_compliance
+    })
+
     hostname_compliance = check_hostname_set(shell)
     compliance_results.append({
         "control_objective": "Set Host Name for Firewall",
         "compliance_status": hostname_compliance
     })
+
+
+
+
+
 
 
 

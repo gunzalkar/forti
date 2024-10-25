@@ -328,7 +328,24 @@ def check_logging_configuration(shell):
     else:
         return "Non-Compliant"
     
+def check_syslog_server_configuration(shell):
+    print("Manual check needed to ensure syslog server is configured on FortiWeb.")
+    return "Manual check needed"
 
+def check_alert_email_configuration(shell):
+    print("Checking email policy configuration...")
+    email_command = 'show log email-policy'
+    output = execute_commands(shell, [email_command])[0][1]
+    
+    mailfrom_exists = 'mailfrom' in output
+    mailto_exists = 'mailto' in output
+
+    if mailfrom_exists and mailto_exists:
+        print("Both 'mailfrom' and 'mailto' settings are configured.")
+        return "Compliant"
+    else:
+        print("Missing 'mailfrom' or 'mailto' settings.")
+        return "Non-Compliant"
 
 
 
@@ -450,6 +467,18 @@ if shell:
     compliance_results.append({
         "control_objective": "Configure logging on FortiWeb",
         "compliance_status": logging_compliance
+    })
+
+    syslog_compliance = check_syslog_server_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Configure syslog server on FortiWeb",
+        "compliance_status": syslog_compliance
+    })
+
+    email_compliance = check_alert_email_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Enable Alert Email",
+        "compliance_status": email_compliance
     })
 
 

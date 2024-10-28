@@ -499,6 +499,22 @@ def check_local_in_policies(shell):
     print("Manual check needed to ensure Local-in Policies are configured to control inbound traffic that is destined to a FortiGate interface.")
     return "Manual check needed"
 
+def check_ntp_configuration(shell):
+    print("Checking NTP configuration...")
+    ntp_command = 'get system global | grep -i ntp'
+    output = execute_commands(shell, [ntp_command])[0][1]
+    
+    # Check for NTP server and NTP sync status
+    if "ntpserver" in output and "ntpsync" in output:
+        ntp_server_pattern = r"ntpserver\s*:\s*.+"
+        ntp_sync_pattern = r"ntpsync\s*:\s*enable"
+        
+        if re.search(ntp_server_pattern, output) and re.search(ntp_sync_pattern, output):
+            print("NTP configuration is correct.")
+            return "Compliant"
+    
+    print("NTP configuration is incorrect or missing.")
+    return "Non-Compliant"
 
 
 
@@ -790,6 +806,12 @@ if shell:
     compliance_results.append({
         "control_objective": "Configure Local-in Policies to control inbound traffic that is destined to a FortiGate interface.",
         "compliance_status": local_in_policies_compliance
+    })
+
+    ntp_compliance = check_ntp_configuration(shell)
+    compliance_results.append({
+        "control_objective": "Ensure correct system time is configured through NTP.",
+        "compliance_status": ntp_compliance
     })
 
     # Write the results to CSV

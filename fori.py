@@ -452,12 +452,10 @@ def check_timezone(shell, expected_timezone):
     print("Checking if the timezone is configured properly...")
     timezone_command = 'get system global | grep -i timezone'
     output = execute_commands(shell, [timezone_command])[0][1]
-
-    # Search for the timezone value
+    
+    # Search for the timezone value with flexible spacing
     match = re.search(r"timezone\s*:\s*(\d+)", output)
-    print("*"*100)
-    print(output)
-    if match and int(match.group(1)) == expected_timezone:
+    if match and int(match.group(1).strip()) == expected_timezone:
         print("Timezone is configured correctly.")
         return "Compliant"
     

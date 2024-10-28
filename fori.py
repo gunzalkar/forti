@@ -448,6 +448,23 @@ def check_regular_backup():
     print("Manual check needed: Verify that regular backups are being performed for the system.")
     return "Manual check needed"
 
+def check_ha_mode(shell):
+    print("Checking High Availability (HA) mode...")
+    ha_command = 'get system ha'
+    output = execute_commands(shell, [ha_command])[0][1]
+    
+    # Use regex to check if 'mode' starts with 'active-active'
+    match = re.search(r'mode\s*:\s*active-active', output, re.IGNORECASE)
+    
+    if match:
+        print("HA mode is configured as 'active-active'.")
+        return "Compliant (Manual Check Suggested)"
+    
+    print("HA mode is not configured as 'active-active'.")
+    return "Non-Compliant (Manual Check Suggested)"
+
+
+
 def check_timezone(shell, expected_timezone):
     print("Checking if the timezone is configured properly...")
     timezone_command = 'get system global | grep -i timezone'
@@ -732,8 +749,12 @@ if shell:
         "compliance_status": backup_compliance
     })
 
+    ha_compliance = check_ha_mode(shell)
+    compliance_results.append({
+        "control_objective": "Ensure High Availability on Firewall",
+        "compliance_status": ha_compliance
+    })
 
-# Define the expected timezone variable and check compliance
     expected_timezone = 48
     timezone_compliance = check_timezone(shell, expected_timezone)
     compliance_results.append({

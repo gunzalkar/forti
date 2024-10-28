@@ -455,6 +455,8 @@ def check_timezone(shell, expected_timezone):
 
     # Search for the timezone value
     match = re.search(r"timezone\s*:\s*(\d+)", output)
+    print("*"*100)
+    print(output)
     if match and int(match.group(1)) == expected_timezone:
         print("Timezone is configured correctly.")
         return "Compliant"
@@ -506,6 +508,7 @@ username = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
 ssh_port = os.getenv('PORT')
 expected_timezone = os.getenv('TIMEZONE')
+print(expected_timezone)
 
 shell = connect_to_fortiweb(hostname, username, password, port=ssh_port)
 

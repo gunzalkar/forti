@@ -440,6 +440,14 @@ def check_hostname_set(shell):
         print("Hostname is not set.")
         return "Non-Compliant"
 
+def check_domain_name():
+    print("Manual check needed: Verify that the domain name is set for the firewall.")
+    return "Manual check needed"
+
+def check_regular_backup():
+    print("Manual check needed: Verify that regular backups are being performed for the system.")
+    return "Manual check needed"
+
 
 
 
@@ -705,7 +713,17 @@ if shell:
         "compliance_status": hostname_compliance
     })
 
+    domain_name_compliance = check_domain_name()
+    compliance_results.append({
+        "control_objective": "Set Domain name of Firewall",
+        "compliance_status": domain_name_compliance
+    })
 
+    backup_compliance = check_regular_backup()
+    compliance_results.append({
+        "control_objective": "Perform regular backup",
+        "compliance_status": backup_compliance
+    })
 
 
 

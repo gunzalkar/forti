@@ -495,6 +495,9 @@ def check_password_policy_status(shell):
     print("Password Policy status is not enabled.")
     return "Non-Compliant"
 
+def check_local_in_policies(shell):
+    print("Manual check needed to ensure Local-in Policies are configured to control inbound traffic that is destined to a FortiGate interface.")
+    return "Manual check needed"
 
 
 
@@ -771,7 +774,6 @@ if shell:
         "compliance_status": ha_compliance
     })
 
-    expected_timezone = 48
     timezone_compliance = check_timezone(shell, expected_timezone)
     compliance_results.append({
         "control_objective": "Ensure timezone is properly configured",
@@ -782,6 +784,12 @@ if shell:
     compliance_results.append({
         "control_objective": "Ensure 'Password Policy' is enabled",
         "compliance_status": password_policy_compliance
+    })
+
+    local_in_policies_compliance = check_local_in_policies(shell)
+    compliance_results.append({
+        "control_objective": "Configure Local-in Policies to control inbound traffic that is destined to a FortiGate interface.",
+        "compliance_status": local_in_policies_compliance
     })
 
     # Write the results to CSV

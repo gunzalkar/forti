@@ -448,6 +448,21 @@ def check_regular_backup():
     print("Manual check needed: Verify that regular backups are being performed for the system.")
     return "Manual check needed"
 
+def check_timezone(shell, expected_timezone):
+    print("Checking if the timezone is configured properly...")
+    timezone_command = 'get system global | grep -i timezone'
+    output = execute_commands(shell, [timezone_command])[0][1]
+
+    # Search for the timezone value
+    match = re.search(r"timezone\s*:\s*(\d+)", output)
+    if match and int(match.group(1)) == expected_timezone:
+        print("Timezone is configured correctly.")
+        return "Compliant"
+    
+    print("Timezone is not configured correctly.")
+    return "Non-Compliant"
+
+
 
 
 
@@ -490,6 +505,7 @@ hostname = os.getenv('HOSTNAME')
 username = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
 ssh_port = os.getenv('PORT')
+expected_timezone = os.getenv('TIMEZONE')
 
 shell = connect_to_fortiweb(hostname, username, password, port=ssh_port)
 
@@ -713,12 +729,6 @@ if shell:
         "compliance_status": hostname_compliance
     })
 
-    domain_name_compliance = check_domain_name()
-    compliance_results.append({
-        "control_objective": "Set Domain name of Firewall",
-        "compliance_status": domain_name_compliance
-    })
-
     backup_compliance = check_regular_backup()
     compliance_results.append({
         "control_objective": "Perform regular backup",
@@ -726,6 +736,11 @@ if shell:
     })
 
 
+    timezone_compliance = check_timezone(shell, expected_timezone)
+    compliance_results.append({
+        "control_objective": "Ensure timezone is properly configured",
+        "compliance_status": timezone_compliance
+    })
 
 
 

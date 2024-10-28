@@ -486,10 +486,6 @@ def check_timezone(shell, expected_timezone):
 
 
 
-
-
-
-
 ####################################################################################################
 def write_to_csv(compliance_results):
     with open('compliance_report.csv', mode='w', newline='') as file:
@@ -737,14 +733,13 @@ if shell:
     })
 
 
+# Define the expected timezone variable and check compliance
+    expected_timezone = 48
     timezone_compliance = check_timezone(shell, expected_timezone)
     compliance_results.append({
         "control_objective": "Ensure timezone is properly configured",
         "compliance_status": timezone_compliance
     })
-
-
-
 
 
 

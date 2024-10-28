@@ -480,6 +480,22 @@ def check_timezone(shell, expected_timezone):
     return "Non-Compliant"
 
 
+def check_password_policy_status(shell):
+    print("Checking if Password Policy status is enabled...")
+    password_policy_command = 'get system password-policy | grep -i status'
+    output = execute_commands(shell, [password_policy_command])[0][1]
+
+    # Check if 'status' line is enabled
+    match = re.search(r'status\s*:\s*enable', output, re.IGNORECASE)
+
+    if match:
+        print("Password Policy status is enabled.")
+        return "Compliant"
+    
+    print("Password Policy status is not enabled.")
+    return "Non-Compliant"
+
+
 
 
 
@@ -762,7 +778,11 @@ if shell:
         "compliance_status": timezone_compliance
     })
 
-
+    password_policy_compliance = check_password_policy_status(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 'Password Policy' is enabled",
+        "compliance_status": password_policy_compliance
+    })
 
     # Write the results to CSV
     write_to_csv(compliance_results)

@@ -516,6 +516,23 @@ def check_ntp_configuration(shell):
     print("NTP configuration is incorrect or missing.")
     return "Non-Compliant"
 
+def check_monitor_interfaces(shell):
+    print("Manual check needed to ensure 'Monitor Interfaces' for High Availability devices is enabled.")
+    return "Manual check needed"
+
+def check_pre_login_banner(shell):
+    print("Checking for pre-login banner...")
+    banner_command = 'show | grep banner'
+    output = execute_commands(shell, [banner_command])[0][1]
+    
+    # Check if the output contains 'enable'
+    if 'enable' in output:
+        print("Pre-login banner is enabled.")
+        return "Compliant"
+    
+    print("Pre-login banner is not enabled.")
+    return "Non-Compliant"
+
 
 
 
@@ -814,6 +831,17 @@ if shell:
         "compliance_status": ntp_compliance
     })
 
+    monitor_interfaces_compliance = check_monitor_interfaces(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 'Monitor Interfaces' for High Availability devices is enabled.",
+        "compliance_status": monitor_interfaces_compliance
+    })
+
+    banner_compliance = check_pre_login_banner(shell)
+    compliance_results.append({
+        "control_objective": "Ensure 'Pre-Login Banner' is set - warning message.",
+        "compliance_status": banner_compliance
+    })
     # Write the results to CSV
     write_to_csv(compliance_results)
     print("Compliance report has been written to 'compliance_report.csv'.")
